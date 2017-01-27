@@ -7,8 +7,8 @@
 %endif
 
 Name:           python-%{srcname}
-Version:        0.19.1
-Release:        2%{?dist}
+Version:        0.19.2
+Release:        1%{?dist}
 Summary:        Python library providing high-performance data analysis tools
 
 License:        BSD
@@ -113,6 +113,9 @@ Python 3 version.
 %endif # with_python3
 
 %changelog
+* Fri Jan 27 2017 Sergio Pascual <sergiopr@fedoraproject.org> - 0.19.2-1
+- New upstream version (0.19.2)
+
 * Mon Dec 19 2016 Miro Hrončok <mhroncok@redhat.com> - 0.19.1-2
 - Rebuild for Python 3.6
 
