@@ -1,6 +1,6 @@
 %global srcname pandas
 
-%if 0%{?fedora}
+%if 0%{?fedora} || 0%{?rhel} > 7
 %bcond_without python3
 %else
 %bcond_with python3
@@ -8,7 +8,7 @@
 
 Name:           python-%{srcname}
 Version:        0.20.3
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Python library providing high-performance data analysis tools
 
 License:        BSD
@@ -37,7 +37,7 @@ Requires:       python2-tables
 Requires:       python2-matplotlib
 Requires:       python2-Bottleneck
 Requires:       python2-numexpr
-%if 0%{?fedora}
+%if 0%{?fedora} || 0%{?rhel} > 7
 Recommends:     python2-pandas-datareader
 Recommends:     python2-xlrd
 Recommends:     python2-xlwt
@@ -67,7 +67,7 @@ Requires:       python3-tables
 Requires:       python3-matplotlib
 Requires:       python3-Bottleneck
 Requires:       python3-numexpr
-%if 0%{?fedora}
+%if 0%{?fedora} || 0%{?rhel} > 7
 Recommends:     python3-pandas-datareader
 Recommends:     python3-xlrd
 Recommends:     python3-xlwt
@@ -113,6 +113,9 @@ Python 3 version.
 %endif # with_python3
 
 %changelog
+* Tue Jan 16 2018 Troy Dawson <tdawson@redhat.com> - 0.20.3-2
+- Update conditionals
+
 * Sun Sep 10 2017 Sergio Pascual <sergiopr@fedoraproject.org> - 0.20.3-1
 - New upstream version (0.20.3)
 
