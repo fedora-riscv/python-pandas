@@ -7,8 +7,8 @@
 %endif
 
 Name:           python-%{srcname}
-Version:        0.20.3
-Release:        2%{?dist}
+Version:        0.22.0
+Release:        1%{?dist}
 Summary:        Python library providing high-performance data analysis tools
 
 License:        BSD
@@ -113,6 +113,9 @@ Python 3 version.
 %endif # with_python3
 
 %changelog
+* Wed Jan 17 2018 Sergio Pascual <sergiopr@fedoraproject.org> - 0.22.0-1
+- New release of pandas 0.22.0
+
 * Tue Jan 16 2018 Troy Dawson <tdawson@redhat.com> - 0.20.3-2
 - Update conditionals
 
