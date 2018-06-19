@@ -8,7 +8,7 @@
 
 Name:           python-%{srcname}
 Version:        0.23.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Python library providing high-performance data analysis tools
 
 License:        BSD
@@ -113,6 +113,9 @@ Python 3 version.
 %endif # with_python3
 
 %changelog
+* Tue Jun 19 2018 Miro Hrončok <mhroncok@redhat.com> - 0.23.0-2
+- Rebuilt for Python 3.7
+
 * Tue Jun 05 2018 Sergio Pascual <sergiopr@fedoraproject.org> - 0.23.0-1
 - New release of pandas 0.23.0
 
