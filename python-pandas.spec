@@ -25,6 +25,7 @@ analysis tools for the Python programming language.
 %package -n python2-%{srcname}
 Summary:        Python library providing high-performance data analysis tools
 BuildRequires:  gcc
+BuildRequires:  gcc-c++
 BuildRequires:  python2-devel
 BuildRequires:  python2-setuptools
 BuildRequires:  python2-matplotlib
