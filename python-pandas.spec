@@ -7,8 +7,8 @@
 %endif
 
 Name:           python-%{srcname}
-Version:        0.23.0
-Release:        3%{?dist}
+Version:        0.23.4
+Release:        1%{?dist}
 Summary:        Python library providing high-performance data analysis tools
 
 License:        BSD
@@ -115,6 +115,9 @@ Python 3 version.
 %endif # with_python3
 
 %changelog
+* Tue Aug 21 2018 Sergio Pascual <sergiopr@fedoraproject.org> - 0.23.4-1
+- New release of pandas 0.23.4
+
 * Sat Jul 14 2018 Fedora Release Engineering <releng@fedoraproject.org> - 0.23.0-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild
 
