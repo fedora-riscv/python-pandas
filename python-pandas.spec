@@ -7,17 +7,17 @@ Release:        5%{?dist}
 Summary:        Python library providing high-performance data analysis tools
 
 License:        BSD
-URL:            http://pandas.pydata.org/
+URL:            https://pandas.pydata.org/
 Source0:        https://pypi.io/packages/source/p/pandas/%{srcname}-%{version}.tar.gz
 # Fix issues with numpydoc 0.9.
 Patch0001:      https://github.com/pandas-dev/pandas/pull/26059.patch
 
-%global __provides_exclude_from ^(%{python2_sitearch}|%{python3_sitearch})/.*\\.so$
-
-%description
+%global _description %{expand:
 pandas is an open source, BSD-licensed library providing
 high-performance, easy-to-use data structures and data
-analysis tools for the Python programming language.
+analysis tools for the Python programming language.}
+
+%description %_description
 
 %package -n python3-%{srcname}
 Summary:        Python library providing high-performance data analysis tools
@@ -43,12 +43,7 @@ Recommends:     python3-xlwt
 
 %{?python_provide:%python_provide python3-%{srcname}}
 
-%description -n python3-%{srcname}
-pandas is an open source, BSD-licensed library providing
-high-performance, easy-to-use data structures and data
-analysis tools for the Python programming language.
-
-Python 3 version.
+%description -n python3-%{srcname} %_description
 
 %prep
 %autosetup -n %{srcname}-%{version} -p1
