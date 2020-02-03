@@ -2,16 +2,13 @@
 
 
 Name:           python-%{srcname}
-Version:        0.25.1
-Release:        2%{?dist}
+Version:        0.25.3
+Release:        1%{?dist}
 Summary:        Python library providing high-performance data analysis tools
 
 License:        BSD
 URL:            https://pandas.pydata.org/
 Source0:        https://pypi.io/packages/source/p/pandas/%{srcname}-%{version}.tar.gz
-# Fix Python 3.8.
-# https://github.com/pandas-dev/pandas/pull/28101
-Patch0001:      https://github.com/pandas-dev/pandas/commit/cd2d804b80a9fa5aa9302d75cd927603ab80a7f0.patch
 
 %global _description %{expand:
 pandas is an open source, BSD-licensed library providing
@@ -63,6 +60,9 @@ Recommends:     python3-xlwt
 %{python3_sitearch}/%{srcname}*
 
 %changelog
+* Mon Nov 11 2019 Sergio Pascual <sergiopr@fedoraproject.org> - 0.25.3-1
+- New release of pandas 0.25.3 (python 3.8 support included)
+
 * Fri Sep 13 2019 Elliott Sales de Andrade <quantum.analyst@gmail.com> - 0.25.1-2
 - Backport patch for Python 3.8 compatibility
 
