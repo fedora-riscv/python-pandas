@@ -24,7 +24,7 @@ BuildRequires:  gcc-c++
 BuildRequires:  python3-devel
 BuildRequires:  python3-setuptools
 BuildRequires:  python3-matplotlib
-BuildRequires:  python3-Cython
+BuildRequires:  python3-Cython >= 0.29.13
 Requires:       python3-pytz
 Requires:       python3-dateutil
 Requires:       python3-numpy
