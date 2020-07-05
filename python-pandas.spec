@@ -2,8 +2,8 @@
 
 
 Name:           python-%{srcname}
-Version:        1.0.1
-Release:        2%{?dist}
+Version:        1.0.5
+Release:        1%{?dist}
 Summary:        Python library providing high-performance data analysis tools
 
 License:        BSD
@@ -60,6 +60,9 @@ Recommends:     python3-xlwt
 %{python3_sitearch}/%{srcname}*
 
 %changelog
+* Sun Jul 05 2020 Elliott Sales de Andrade <quantum.analyst@gmail.com> - 1.0.5-1
+- Update to latest version
+
 * Mon May 25 2020 Miro Hrončok <mhroncok@redhat.com> - 1.0.1-2
 - Rebuilt for Python 3.9
 
