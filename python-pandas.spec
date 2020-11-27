@@ -2,13 +2,13 @@
 
 
 Name:           python-%{srcname}
-Version:        1.0.5
-Release:        2%{?dist}
+Version:        1.1.4
+Release:        1%{?dist}
 Summary:        Python library providing high-performance data analysis tools
 
 License:        BSD
 URL:            https://pandas.pydata.org/
-Source0:        https://pypi.io/packages/source/p/pandas/%{srcname}-%{version}.tar.gz
+Source0:        %{pypi_source}
 
 %global _description %{expand:
 pandas is an open source, BSD-licensed library providing
@@ -60,6 +60,9 @@ Recommends:     python3-xlwt
 %{python3_sitearch}/%{srcname}*
 
 %changelog
+* Fri Nov 27 2020 Sergio Pascual <sergiopr@fedoraproject.org> - 1.1.4-1
+- New release of pandas 1.1.4
+
 * Wed Jul 29 2020 Fedora Release Engineering <releng@fedoraproject.org> - 1.0.5-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_33_Mass_Rebuild
 
