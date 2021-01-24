@@ -2,7 +2,7 @@
 
 
 Name:           python-%{srcname}
-Version:        1.2.0
+Version:        1.2.1
 Release:        1%{?dist}
 Summary:        Python library providing high-performance data analysis tools
 
@@ -60,6 +60,9 @@ Recommends:     python3-xlwt
 %{python3_sitearch}/%{srcname}*
 
 %changelog
+* Sun Jan 24 2021 Orion Poplawski <orion@nwra.com> - 1.2.1-1
+- Update to 1.2.1
+
 * Wed Jan 13 2021 Sergio Pascual <sergiopr@fedoraproject.org> - 1.2.0-1
 - New release of pandas 1.2.0
 
