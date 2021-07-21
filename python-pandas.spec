@@ -2,8 +2,8 @@
 
 
 Name:           python-%{srcname}
-Version:        1.2.4
-Release:        2%{?dist}
+Version:        1.3.0
+Release:        1%{?dist}
 Summary:        Python library providing high-performance data analysis tools
 
 License:        BSD
@@ -60,6 +60,9 @@ Recommends:     python3-xlwt
 %{python3_sitearch}/%{srcname}*
 
 %changelog
+* Wed Jul 21 2021 Sergio Pascual <sergiopr@fedoraproject.org> - 1.3.0-1
+- New release of pandas 1.3.0
+
 * Mon Jun 07 2021 Python Maint <python-maint@redhat.com> - 1.2.4-2
 - Rebuilt for Python 3.10
 
