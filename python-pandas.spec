@@ -3,7 +3,7 @@
 
 Name:           python-%{srcname}
 Version:        1.3.3
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Python library providing high-performance data analysis tools
 
 License:        BSD
@@ -60,6 +60,9 @@ Recommends:     python3-xlwt
 %{python3_sitearch}/%{srcname}*
 
 %changelog
+* Fri Jan 21 2022 Fedora Release Engineering <releng@fedoraproject.org> - 1.3.3-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_36_Mass_Rebuild
+
 * Thu Oct 07 2021 Sergio Pascual <sergiopr@fedoraproject.org> - 1.3.3-2
 - New release of pandas 1.3.3
 - Add missing sources
