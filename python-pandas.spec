@@ -1,14 +1,44 @@
 %global srcname pandas
 
+# Break cycles with optional dependencies
+%bcond_with bootstrap
 
 Name:           python-%{srcname}
-Version:        1.3.3
-Release:        3%{?dist}
+Version:        1.3.5
+Release:        1%{?dist}
 Summary:        Python library providing high-performance data analysis tools
 
 License:        BSD
 URL:            https://pandas.pydata.org/
-Source0:        %{pypi_source}
+Source0:        %{pypi_source %{srcname}}
+
+# Partial backport of upstream commit d437902f46acbff4a03d748b30620bc75fa5ea1f:
+# “CI: Migrate Python 3.10 testing to Posix GHA/Azure Pipelines (#45120)”
+#
+# Fixes error in TestDataFramePlots.test_raise_error_on_datetime_time_data
+Patch:          pandas-1.3.5-d437902.patch
+
+# Partial backport of upstream commit 560172832922594fe9e75ca4a6060ff0cb7f7089
+# “CI: Merge database workflow into posix workflow (#45060)”
+#
+# Fixes error in TestToDatetime.test_to_datetime_tz_psycopg2
+Patch:          pandas-1.3.5-5601728.patch
+
+# Partial backport of upstream commit 2dd75ca5e04a18db9d79d9bed01726b40b6268e9
+# “TST: Ensure tm.network has pytest.mark.network (#45732)”
+#
+# Fixes error in test_wrong_url[lxml] when the “network” mark is deselected
+Patch:          pandas-1.3.5-2dd75ca.patch
+
+# Fix a few test failues on big-endian systems
+# https://github.com/pandas-dev/pandas/pull/46681
+# (PR is for main branch; this version of the patch is for 1.3.5)
+Patch:          pandas-1.3.5-pr-46681.patch
+
+# Do not install C sources in binary distributions
+# https://github.com/pandas-dev/pandas/pull/46739
+# (PR is for main branch; this version of the patch is for 1.3.5)
+Patch:          pandas-1.3.5-pr-46739.patch
 
 %global _description %{expand:
 pandas is an open source, BSD-licensed library providing
@@ -17,49 +47,172 @@ analysis tools for the Python programming language.}
 
 %description %_description
 
+
 %package -n python3-%{srcname}
-Summary:        Python library providing high-performance data analysis tools
+Summary:        %{summary}
+
 BuildRequires:  gcc
 BuildRequires:  gcc-c++
+
 BuildRequires:  python3-devel
-BuildRequires:  python3-setuptools
-BuildRequires:  python3-matplotlib
-BuildRequires:  python3-Cython >= 0.29.13
-Requires:       python3-pytz
-Requires:       python3-dateutil
-Requires:       python3-numpy
-Requires:       python3-scipy
-Requires:       python3-tables
-Requires:       python3-matplotlib
-Requires:       python3-Bottleneck
-Requires:       python3-numexpr
-%if 0%{?fedora} || 0%{?rhel} > 7
-Recommends:     python3-pandas-datareader
-Recommends:     python3-xlrd
-Recommends:     python3-xlwt
+
+# pyproject.toml: [build-system] requires
+BuildRequires:  python3dist(setuptools) >= 51
+BuildRequires:  python3dist(wheel)
+BuildRequires:  ((python3dist(cython) >= 0.29.24) with (python3dist(cython) < 3))
+
+# setup.cfg: [options] install_requires
+BuildRequires:  python3dist(numpy) >= 1.21
+BuildRequires:  python3dist(python-dateutil) >= 2.7.3
+BuildRequires:  python3dist(pytz) >= 2017.3
+
+# doc/source/getting_started/install.rst “Recommended dependencies”
+# Since these provide large speedups, we make them hard dependencies.
+BuildRequires:  python3dist(numexpr) >= 2.7
+Requires:       python3dist(numexpr) >= 2.7
+BuildRequires:  python3dist(bottleneck) >= 1.2.1
+Requires:       python3dist(bottleneck) >= 1.2.1
+
+# doc/source/getting_started/install.rst “Optional dependencies”
+# We BR all weak dependencies to ensure they are installable.
+
+# Visualization
+BuildRequires:  python3dist(setuptools) >= 38.6
+Recommends:     python3dist(setuptools) >= 38.6
+BuildRequires:  python3dist(matplotlib) >= 2.2.3
+Recommends:     python3dist(matplotlib) >= 2.2.3
+BuildRequires:  python3dist(jinja2) >= 2.10
+Recommends:     python3dist(jinja2) >= 2.10
+%if %{without bootstrap}
+BuildRequires:  python3dist(tabulate) >= 0.8.7
+Recommends:     python3dist(tabulate) >= 0.8.7
 %endif
 
-%{?python_provide:%python_provide python3-%{srcname}}
+# Computation
+# Documented minimum SciPy version is 1.12, but this is a typo since that
+# version does not exist yet.
+BuildRequires:  python3dist(scipy)
+Recommends:     python3dist(scipy)
+# python-numba is not currently packaged:
+# BuildRequires:  python3dist(numba) >= 0.46
+# Recommends:     python3dist(numba) >= 0.46
+BuildRequires:  python3dist(xarray) >= 1.12.3
+Recommends:     python3dist(xarray) >= 1.12.3
+
+# Excel files
+BuildRequires:  python3dist(xlrd) >= 1.2
+Recommends:     python3dist(xlrd) >= 1.2
+BuildRequires:  python3dist(xlwt) >= 1.3
+Recommends:     python3dist(xlwt) >= 1.3
+BuildRequires:  python3dist(xlsxwriter) >= 1.0.2
+Recommends:     python3dist(xlsxwriter) >= 1.0.2
+BuildRequires:  python3dist(openpyxl) >= 3
+Recommends:     python3dist(openpyxl) >= 3
+# python-pyxlsb is not currently packaged:
+# BuildRequires:  python3dist(pyxlsb) >= 1.0.6
+# Recommends:     python3dist(pyxlsb) >= 1.0.6
+
+# HTML
+BuildRequires:  python3dist(beautifulsoup4) >= 4.6
+Recommends:     python3dist(beautifulsoup4) >= 4.6
+BuildRequires:  python3dist(html5lib) >= 1.0.1
+Recommends:     python3dist(html5lib) >= 1.0.1
+# lxml handled below:
+
+# XML
+BuildRequires:  python3dist(lxml) >= 4.3
+Recommends:     python3dist(lxml) >= 4.3
+
+# SQL databases
+BuildRequires:  python3dist(sqlalchemy) >= 1.3
+Recommends:     python3dist(sqlalchemy) >= 1.3
+BuildRequires:  python3dist(psycopg2) >= 2.7
+Recommends:     python3dist(psycopg2) >= 2.7
+BuildRequires:  python3dist(pymysql) >= 0.8.1
+Recommends:     python3dist(pymysql) >= 0.8.1
+
+# Other data sources
+BuildRequires:  python3dist(tables) >= 3.5.1
+Recommends:     python3dist(tables) >= 3.5.1
+# Dependencies on blosc and zlib are indirect, via PyTables, so we do not
+# encode them here. Note also that the minimum blosc version in the
+# documentation seems to be that of the blosc C library, not of the blosc PyPI
+# package.
+# python-fastparquet is not currently packaged:
+# BuildRequires:  python3dist(fastparquet) >= 0.4
+# Recommends:     python3dist(fastparquet) >= 0.4
+# python-pyarrow is not currently packaged:
+# BuildRequires:  python3dist(pyarrow) >= 0.17
+# Recommends:     python3dist(pyarrow) >= 0.17
+# python-pyreadstat is not currently packaged:
+# BuildRequires:  python3dist(pyreadstat)
+# Recommends:     python3dist(pyreadstat)
+
+# Access data in the cloud
+BuildRequires:  python3dist(fsspec) >= 0.7.4
+Recommends:     python3dist(fsspec) >= 0.7.4
+BuildRequires:  python3dist(gcsfs) >= 0.6
+Recommends:     python3dist(gcsfs) >= 0.6
+# python-pandas-gbq is not currently packaged:
+# BuildRequires:  python3dist(pandas-gbq) >= 0.12
+# Recommends:     python3dist(pandas-gbq) >= 0.12
+# python-s3fs is not currently packaged:
+# BuildRequires:  python3dist(s3fs) >= 0.4
+# Recommends:     python3dist(s3fs) >= 0.4
+
+# Clipboard
+BuildRequires:  python3dist(pyqt5)
+Recommends:     python3dist(pyqt5)
+BuildRequires:  python3dist(qtpy)
+Recommends:     python3dist(qtpy)
+BuildRequires:  xclip
+Recommends:     xclip
+BuildRequires:  xsel
+Recommends:     xsel
+
+# This is just an “ecosystem” package in the upstream documentation, but there
+# is an integration test for it. This package historically had a weak
+# dependency on it, which we keep around until we package 1.4.0 to ensure
+# backward compatibility.
+BuildRequires:  python3dist(pandas-datareader)
+Recommends:     python3dist(pandas-datareader)
 
 %description -n python3-%{srcname} %_description
 
+
 %prep
 %autosetup -n %{srcname}-%{version} -p1
-# Cython is too old in RHEL8.0
-%{!?el8:rm -f $(grep -rl '/\* Generated by Cython')}
+
+# Ensure Cython-generated sources are re-generated
+rm -vf $(grep -rl '/\* Generated by Cython')
+
+# We just want to build with the numpy in Fedora:
+sed -r -i '/\boldest-supported-numpy\b/d' pyproject.toml
+
 
 %build
 %py3_build
 
+
 %install
 %py3_install
 
+
 %files -n python3-pandas
+%doc README.md
 %doc RELEASE.md
 %license LICENSE
 %{python3_sitearch}/%{srcname}*
 
+
 %changelog
+* Sat Apr 02 2022 Benjamin A. Beasley <code@musicinmybrain.net> - 1.3.5-1
+- Update to 1.3.5
+- Drop compatibility with old RHEL releases that will not get this version anyway
+- Update weak dependencies from documentation
+- Also package README.md
+- Do not install C sources
+
 * Fri Jan 21 2022 Fedora Release Engineering <releng@fedoraproject.org> - 1.3.3-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_36_Mass_Rebuild
 
