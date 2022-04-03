@@ -8,7 +8,49 @@ Version:        1.3.5
 Release:        1%{?dist}
 Summary:        Python library providing high-performance data analysis tools
 
-License:        BSD
+# The entire source is BSD, except:
+#
+# - pandas/util/version/__init__.py is (ASL 2.0 or BSD): see
+#   LICENSES/PACKAGING_LICENSE
+# - pandas/_libs/src/headers/portable.h is (BSD and MIT), because it contains
+#   some trivial content under the overall BSD license but also some macros
+#   from MUSL libc under the MIT license: see LICENSES/MUSL_LICENSE
+# - pandas/_libs/src/parser/tokenizer.c is (BSD and Python): see
+#   LICENSES/PSF_LICENSE
+# - pandas/io/sas/sas7bdat.py is (BSD and MIT), because it is mostly under the
+#   overall BSD license but is also based on
+#   https://bitbucket.org/jaredhobbs/sas7bdat: see LICENSES/SAS7BDAT_LICENSE
+# - pandas/core/accessor.py is (BSD and ASL 2.0), because it is partially under
+#   the overall BSD license but is also based on xarray: see
+#   LICENSES/XARRAY_LICENSE
+# - pandas/_libs/src/klib/khash.h is MIT; compiled extension libraries
+#   including it along with BSD code will be (BSD and MIT); see
+#   https://github.com/pandas-dev/pandas/pull/46741 “Add a license file for
+#   klib (khash)”
+#
+# Additionally:
+#
+# - pandas/_libs/tslibs/parsing.pyx is either BSD or
+#   (BSD and (BSD or ASL 2.0)), depending on whether all of the code from
+#   dateutil in the dateutil_parse() function is by contributors who have
+#   agreed to re-license their previously submitted code under ASL 2.0—a
+#   question we have not attempted to resolve, and which is not particularly
+#   important here: see LICENSES/DATEUTIL_LICENSE. We consider that the
+#   effective license of any compiled extensions containing this code can be
+#   simplified to “BSD” in either case. See:
+#   https://fedoraproject.org/wiki/Licensing:FAQ
+# - LICENSES/OTHER suggests that some code may be derived from
+#   google-api-python-client under ASL 2.0, but a search for attribution
+#   comments did not turn up anything specific
+#
+# Additionally, the following are not packaged and so do not affect the overall
+# License field:
+#
+# - pandas/tests/io/data/spss/*.sav are MIT: see LICENSES/HAVEN_LICENSE and
+#   LICENSES/HAVEN_MIT (This would be packaged if it were present—tests *are*
+#   packaged—but it is not in the PyPI sdist.)
+# - scripts/no_bool_in_generic.py is MIT: see LICENSES/PYUPGRADE_LICENSE
+License:        BSD and (BSD or ASL 2.0) and (BSD and ASL 2.0) and (BSD and MIT) and (BSD and Python)
 URL:            https://pandas.pydata.org/
 Source0:        %{pypi_source %{srcname}}
 
@@ -50,6 +92,137 @@ analysis tools for the Python programming language.}
 
 %package -n python3-%{srcname}
 Summary:        %{summary}
+
+# pandas/tests/window/moments/test_moments_rolling.py: test_rolling_std_neg_sqrt()
+#
+#   unit test from Bottleneck
+#
+# pandas/_libs/window/aggregations.pyx:
+#
+#   Moving maximum / minimum code taken from Bottleneck under the terms
+#   of its Simplified BSD license
+#   https://github.com/pydata/bottleneck
+#
+# These snippets are extracted from Bottleneck’s internals and cannot be
+# replaced by calling the public Bottleneck API, so there is no reasonable path
+# to unbundling.
+Provides:       bundled(python3dist(bottleneck))
+
+# pandas/_libs/tslibs/parsing.pyx:
+#
+# Contains a routine, dateutil_parse(), from an unspecified version of dateutil
+#
+# Cannot be unbundled because the function is forked and compiled as Cython
+Provides:       bundled(python3dist(dateutil))
+
+# pandas/_libs/src/klib/khash.h:
+#
+# From klib (https://github.com/attractivechaos/klib); it is not practical to
+# package all of klib separately because it is designed as a copylib, and many
+# of its components are not header-only.
+Provides:       bundled(klib-khash) = 0.2.6
+
+# pandas/tests/io/data/spss/*.sav:
+#
+# From Haven
+#
+# Not packaged (tests only) therefore not bundled
+# Provides:       bundled(R-haven)
+
+# pandas/_libs/src/headers/portable.h:
+#
+# Contains several preprocessor macros from an unspecified version of MUSL libc
+#
+# Cannot be unbundled because the macros are not directly exposed in the libc
+Provides:       bundled(musl-libc)
+
+# pandas/_libs/tslibs/src/datetime/np_datetime.{h,c}:
+#
+# Derived from Numpy 1.7
+#
+# Cannot be unbundled because the routines are forked.
+Provides:       bundled(python3dist(numpy)) = 1.7
+
+# pandas/util/version/__init__.py:
+#
+# Vendored from https://github.com/pypa/packaging/blob/main/packaging/_structures.py
+# and https://github.com/pypa/packaging/blob/main/packaging/_structures.py
+# changeset ae891fd74d6dd4c6063bb04f2faeadaac6fc6313
+# 04/30/2021
+#
+# Cannot be (reasonably) unbundled because the vendored file is not part of
+# packaging’s public API.
+Provides:       bundled(python3dist(packaging)) = 20.10.dev0^20210430gitae891fd
+
+# pandas/io/clipboard/:
+#
+# In https://github.com/pandas-dev/pandas/pull/28471, upstream considered and
+# rejected the idea of de-vendoring pyperclip. Furthermore,
+# https://github.com/pandas-dev/pandas/commits/main/pandas/io/clipboard and
+# https://github.com/pandas-dev/pandas/commits/main/pandas/io/clipboard/__init__.py
+# show that the vendored library has accrued Pandas-specific changes.
+#
+# Version number from:
+# https://github.com/pandas-dev/pandas/pull/28471/commits/33cd2d72e0c007c460e59105efda9211441b2ce4
+# “Updated internal pyperclip 1.5.27 -> 1.7.0”
+Provides:       bundled(python3dist(pyperclip)) = 1.7.0
+
+# pandas/_libs/src/parser/tokenizer.c:
+#
+# Combines some elements from Python's built-in csv module and Warren
+# Weckesser's textreader project on GitHub.
+#
+# Elements from these are both forked and cannot be unbundled. The textreader
+# project is a Python extension but is not on PyPI, and is not the same as
+# python3dist(textreader).
+Provides:       bundled(python3-libs)
+Provides:       bundled(textreader)
+
+# scripts/no_bool_in_generic.py:
+#
+# The function `visit` is adapted from a function by the same name in pyupgrade:
+# https://github.com/asottile/pyupgrade/blob/5495a248f2165941c5d3b82ac3226ba7ad1fa59d/pyupgrade/_data.py#L70-L113
+#
+# Not packaged (pre-commit hook) therefore not bundled
+# Provides:       bundled(python3dist(pyupgrade)) = 2.11.0^20210201git5495a24
+
+# pandas/io/sas/sas7bdat.py
+#
+# Based on code written by Jared Hobbs:
+#   https://bitbucket.org/jaredhobbs/sas7bdat
+#
+# Cannot be unbundled because the code is modified, not directly copied
+Provides:       bundled(python3dist(sas7bdat))
+
+# pandas/_testing/__init__.py: in _create_missing_idx():
+#
+#   below is cribbed from scipy.sparse
+#
+# Cannot be unbundled because only a few lines are copied, not a standalone
+# function that we can call
+Provides:       bundled(python3dist(scipy))
+
+# pandas/_libs/src/ujson/lib/:
+#
+# This is a stripped-down copy of UltraJSON. It would be an obvious target for
+# unbundling, except:
+#
+# - Pandas uses the C library API, but UltraJSON upstream does not support
+#   building and installing it separately from the Python package.
+# - In https://github.com/pandas-dev/pandas/issues/24711 it is suggested that
+#   Pandas might rely on features of the particular vendored version of
+#   UltraJSON. It’s not immediately clear whether this is still true or not.
+Provides:       bundled(python3dist(ujson))
+
+# pandas/core/accessor.py
+#
+#   Ported with modifications from xarray
+#   https://github.com/pydata/xarray/blob/master/xarray/core/extensions.py
+#   1. We don't need to catch and re-raise AttributeErrors as RuntimeErrors
+#   2. We use a UserWarning instead of a custom Warning
+#
+# Cannot be unbundled because the copied code is forked.
+Provides:       bundled(python3dist(xarray))
 
 BuildRequires:  gcc
 BuildRequires:  gcc-c++
@@ -201,7 +374,7 @@ sed -r -i '/\boldest-supported-numpy\b/d' pyproject.toml
 %files -n python3-pandas
 %doc README.md
 %doc RELEASE.md
-%license LICENSE
+%license LICENSE LICENSES
 %{python3_sitearch}/%{srcname}*
 
 
@@ -212,6 +385,7 @@ sed -r -i '/\boldest-supported-numpy\b/d' pyproject.toml
 - Update weak dependencies from documentation
 - Also package README.md
 - Do not install C sources
+- Carefully handle virtual Provides and licenses for bundled/copied code
 
 * Fri Jan 21 2022 Fedora Release Engineering <releng@fedoraproject.org> - 1.3.3-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_36_Mass_Rebuild
