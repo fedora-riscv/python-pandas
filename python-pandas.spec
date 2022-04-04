@@ -1,6 +1,15 @@
 # Break cycles with optional dependencies
 %bcond_with bootstrap
 
+# Run tests?
+%bcond_without tests
+# When running tests, run ones that are marked as slow?
+%bcond_without slow_tests
+# When running tests, run ones that cannot be run in parallel?
+%bcond_without single_tests
+# When running tests, run ones that require a lot of memory?
+%bcond_without high_memory_tests
+
 Name:           python-pandas
 Version:        1.3.5
 Release:        1%{?dist}
@@ -26,6 +35,11 @@ Summary:        Python library providing high-performance data analysis tools
 #   https://github.com/pandas-dev/pandas/pull/46741 “Add a license file for
 #   klib (khash)”
 #
+# In the python3-pandas-tests subpackage:
+#
+# - pandas/tests/io/data/spss/*.sav are MIT: see LICENSES/HAVEN_LICENSE and
+#   LICENSES/HAVEN_MIT
+#
 # Additionally:
 #
 # - pandas/_libs/tslibs/parsing.pyx is either BSD or
@@ -44,13 +58,11 @@ Summary:        Python library providing high-performance data analysis tools
 # Additionally, the following are not packaged and so do not affect the overall
 # License field:
 #
-# - pandas/tests/io/data/spss/*.sav are MIT: see LICENSES/HAVEN_LICENSE and
-#   LICENSES/HAVEN_MIT (This would be packaged if it were present—tests *are*
-#   packaged—but it is not in the PyPI sdist.)
 # - scripts/no_bool_in_generic.py is MIT: see LICENSES/PYUPGRADE_LICENSE
 License:        BSD and (BSD or ASL 2.0) and (BSD and ASL 2.0) and (BSD and MIT) and (BSD and Python)
 URL:            https://pandas.pydata.org/
-Source0:        %{pypi_source pandas}
+# The GitHub archive contains tests; the PyPI sdist does not.
+Source0:        https://github.com/pandas-dev/pandas/archive/v%{version}/pandas-%{version}.tar.gz
 
 # Partial backport of upstream commit d437902f46acbff4a03d748b30620bc75fa5ea1f:
 # “CI: Migrate Python 3.10 testing to Posix GHA/Azure Pipelines (#45120)”
@@ -272,6 +284,10 @@ Recommends:     python3dist(openpyxl) >= 3
 # python-pyxlsb is not currently packaged:
 # BuildRequires:  python3dist(pyxlsb) >= 1.0.6
 # Recommends:     python3dist(pyxlsb) >= 1.0.6
+# Not in doc/source/getting_started/install.rst, but in environment.yml and in
+# some doc-strings:
+BuildRequires:  python3dist(odfpy)
+Recommends:     python3dist(odfpy)
 
 # HTML
 BuildRequires:  python3dist(beautifulsoup4) >= 4.6
@@ -341,6 +357,83 @@ Recommends:     python3dist(pandas-datareader)
 %description -n python3-pandas %_description
 
 
+%package -n python3-pandas+test
+Summary:        Tests and test extras for Pandas
+
+# See comment above base package License tag for licensing breakdown.
+License:        BSD and MIT
+
+Requires:       python3-pandas%{?_isa} = %{version}-%{release}
+
+# Additional BR’s and weak dependencies below are generally those that don’t
+# provide enough added functionality to be weak dependencies of the library
+# package, but for which there is some integration support and additional tests
+# that can be enabled.
+
+# Additional dependencies from environment.yml: “testing”
+# Those not in the “test” extra are treated as weak dependencies for the tests.
+BuildRequires:  python3dist(boto3)
+Recommends:     python3dist(boto3)
+BuildRequires:  python3dist(botocore) >= 1.11
+Recommends:     python3dist(botocore) >= 1.11
+# Already covered by “test” extra
+# BuildRequires:  python3dist(hypothesis) >= 3.82
+# Recommends:     python3dist(hypothesis) >= 3.82
+# python-moto is not yet packaged
+# BuildRequires:  python3dist(moto)
+# Recommends:     python3dist(moto)
+BuildRequires:  python3dist(flask)
+Recommends:     python3dist(flask)
+# Already covered by “test” extra
+# BuildRequires:  python3dist(pytest) >= 5.0.1
+# Requires:       python3dist(pytest) >= 5.0.1
+# https://docs.fedoraproject.org/en-US/packaging-guidelines/Python/#_linters
+# BuildRequires:  python3dist(pytest-cov)
+# Recommends:     python3dist(pytest-cov)
+# Already covered by “test” extra
+# BuildRequires:  python3dist(pytest-xdist) >= 1.21
+# Requires:       python3dist(pytest-xdist) >= 1.21
+BuildRequires:  python3dist(pytest-asyncio)
+Recommends:     python3dist(pytest-asyncio)
+# python-pytest-instafail is not yet packaged
+# BuildRequires:  python3dist(pytest-instafail)
+# Recommends:     python3dist(pytest-instafail)
+
+# Additional dependencies from environment.yml:
+# “Dask and its dependencies (that dont install with dask)”
+# Asks for dask-core, but we just have dask
+BuildRequires:  python3dist(dask)
+Recommends:     python3dist(dask)
+BuildRequires:  python3dist(toolz) >= 0.7.3
+Recommends:     python3dist(toolz) >= 0.7.3
+BuildRequires:  python3dist(partd) >= 0.3.10
+Recommends:     python3dist(partd) >= 0.3.10
+BuildRequires:  python3dist(cloudpickle) >= 0.2.1
+Recommends:     python3dist(cloudpickle) >= 0.2.1
+
+# Additional dependencies from environment.yml: “downstream tests”
+BuildRequires:  python3dist(seaborn)
+Recommends:     python3dist(seaborn)
+BuildRequires:  python3dist(statsmodels)
+Recommends:     python3dist(statsmodels)
+
+# environment.yml: Needed for downstream xarray.CFTimeIndex test
+BuildRequires:  python3dist(cftime)
+Recommends:     python3dist(cftime)
+
+# environment.yml: optional
+BuildRequires:  python3dist(ipython) >= 7.11.1
+Recommends:     python3dist(ipython) >= 7.11.1
+
+
+%description -n python3-pandas+test
+These are the tests for python3-pandas. This package:
+
+• Provides the “pandas.tests” package
+• Makes sure the “test” extra dependencies are installed
+• Carries additonal weak dependencies for running the tests
+
+
 %prep
 %autosetup -n pandas-%{version} -p1
 
@@ -352,7 +445,7 @@ sed -r -i '/\boldest-supported-numpy\b/d' pyproject.toml
 
 
 %generate_buildrequires
-%pyproject_buildrequires -r
+%pyproject_buildrequires -r %{?with_tests:-x test}
 
 
 %build
@@ -365,7 +458,140 @@ sed -r -i '/\boldest-supported-numpy\b/d' pyproject.toml
 
 
 %check
+# Clipboard tests don’t run without a graphical session, and it’s not worth
+# using xvfb-run just for them.
+m="${m-}${m+ and }not clipboard"
+%if %{without single_tests}
+m="${m-}${m+ and }not single"
+%endif
+
+%if %{with tests}
+%ifarch %{arm32}
+# worker 'gw2' crashed while running '…'
+k="${k-}${k+ and }not test_append_frame_column_oriented"
+%endif
+
+%ifarch %{ix86} %{arm32}
+# This “high-memory” test is just not appropriate for 32-bit platforms:
+# E       OverflowError: join() result is too long for a Python string
+k="${k-}${k+ and }not test_bytes_exceed_2gb[c_high]"
+%endif
+
+%ifarch ppc64le s390x %{arm32}
+# TODO: Why does this fail?
+# >       with pytest.raises(TypeError, match=msg):
+# E       Failed: DID NOT RAISE <class 'TypeError'>
+k="${k-}${k+ and }not (TestFloatSubtype and test_subtype_integer_errors)"
+%endif
+
+%ifarch %{ix86} %{arm32}
+# TODO: Why does this fail?
+# E           assert 243.164 == 243.16400000000002
+# Fails for both [c_high] and [c_low].
+k="${k-}${k+ and }not test_float_precision_options"
+%endif
+
+%ifarch s390x
+# TODO: Why does this fail?
+#
+# >                   os.fsync(self._handle.fileno())
+# E                   OverflowError: Python int too large to convert to C int
+k="${k-}${k+ and }not test_flush"
+%endif
+
+%ifarch %{arm64} %{arm32}
+# TODO: Why does this fail?
+# >           with pytest.raises(ValueError, match="external reference.*"):
+# E           Failed: DID NOT RAISE <class 'ValueError'>
+k="${k-}${k+ and }not (TestHashTable and test_vector_resize[True-UInt64HashTable-UInt64Vector-uint64-False-10])"
+%endif
+
+%ifarch ppc64le
+# TODO: Why does this fail?
+# >           with pytest.raises(ValueError, match="external reference.*"):
+# E           Failed: DID NOT RAISE <class 'ValueError'>
+k="${k-}${k+ and }not (TestHashTable and test_vector_resize[False-UInt64HashTable-UInt64Vector-uint64-False-10])"
+%endif
+
+# This test (only) expects the current working directory to be the
+# site-packages directory containing the built pandas. This is not how we run
+# the tests, because we don’t want to clutter the buildroot with
+# testing-related hidden files and directories. We could run tests from
+# %%pyproject_build_lib if this were a problem for a lot of tests, but it’s
+# easier just to skip it.
+k="${k-}${k+ and }not test_html_template_extends_options"
+
+# TODO: Why does this fail? This also seems to have to do with fsspec.
+k="${k-}${k+ and }not test_markdown_options"
+
+# TODO: Why does this fail?
+# >           assert res_deep == res == expected
+# E           assert 0 == 108
+k="${k-}${k+ and }not test_memory_usage[series-with-empty-index]"
+
+%ifarch %{ix86} %{arm32}
+# TODO: Why does this fail?
+# E   AssertionError: DataFrame.iloc[:, 2] (column name="C") are different
+# E
+# E   DataFrame.iloc[:, 2] (column name="C") values are different (11.57513 %)
+k="${k-}${k+ and }not (TestMerge and test_int64_overflow_issues)"
+%endif
+
+# TODO: Why does this fail? An fsspec.implementations.memory.MemoryFile does
+# not seem to work as expected.
+k="${k-}${k+ and }not test_read_csv"
+
+%ifarch ppc64le s390x
+# TODO: Why does this fail? The differences are large!
+k="${k-}${k+ and }not test_rolling_var_numerical_issues"
+%endif
+
+%ifarch %{arm32}
+# worker 'gw4' crashed while running '…'
+k="${k-}${k+ and }not test_select_filter_corner"
+%endif
+
+# Ensure pytest doesn’t find the “un-built” library. We can get away with this
+# approach because the tests are also in the installed library. We can’t simply
+# “cd” to the buildroot’s python3_sitearch because testing leaves files in the
+# current working directory.
+mkdir -p _empty
+cd _empty
+
+# See: test_fast.sh
+# Workaround for pytest-xdist flaky collection order
+# https://github.com/pytest-dev/pytest/issues/920
+# https://github.com/pytest-dev/pytest/issues/1075
+export PYTHONHASHSEED="$(
+  %{python3} -c 'import random; print(random.randint(1, 4294967295))'
+)"
+
+%ifarch %{ix86} %{arm32}
+# Limit parallelism in tests to prevent memory exhaustion
+%global testn_max 4
+%if 0%{?fedora} > 35
+%constrain_build -c %{testn_max}
+%else
+%if %{?_smp_build_ncpus}%{?!_smp_build_ncpus:4} > %{testn_max}
+%global _smp_build_ncpus %{testn_max}
+%endif
+%endif
+
+%endif
+
+# Fallback parallelism of 4 is from upstream CI
+%pytest '%{buildroot}%{python3_sitearch}/pandas' \
+    %{?!with_slow_tests:--skip-slow} \
+    --skip-network \
+    --skip-db \
+    %{?with_high_memory_tests:--run-high-memory} \
+    -m "${m-}" \
+    -k "${k-}" \
+    -n %{?_smp_build_ncpus}%{?!_smp_build_ncpus:4} \
+    -r sxX
+%else
 %pyproject_check_import -e 'pandas.conftest' -e 'pandas.tests.*'
+%endif
 
 
 %files -n python3-pandas -f %{pyproject_files}
@@ -377,6 +603,12 @@ sed -r -i '/\boldest-supported-numpy\b/d' pyproject.toml
 %license LICENSE LICENSES/
 %doc README.md
 %doc RELEASE.md
+%exclude %{python3_sitearch}/pandas/tests
+
+
+%files -n python3-pandas+test
+%{python3_sitearch}/pandas/tests
+%ghost %{python3_sitearch}/*.dist-info
 
 
 %changelog
@@ -388,6 +620,7 @@ sed -r -i '/\boldest-supported-numpy\b/d' pyproject.toml
 - Do not install C sources
 - Carefully handle virtual Provides and licenses for bundled/copied code
 - Use pyproject-rpm-macros
+- Run the tests (requires switching to GitHub source)
 
 * Fri Jan 21 2022 Fedora Release Engineering <releng@fedoraproject.org> - 1.3.3-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_36_Mass_Rebuild

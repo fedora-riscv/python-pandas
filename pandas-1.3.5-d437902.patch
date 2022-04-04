@@ -1,0 +1,12 @@
+diff -Naur pandas-1.3.5-original/pandas/tests/plotting/frame/test_frame.py pandas-1.3.5/pandas/tests/plotting/frame/test_frame.py
+--- pandas-1.3.5-original/pandas/tests/plotting/frame/test_frame.py	2021-12-12 05:20:48.000000000 -0500
++++ pandas-1.3.5/pandas/tests/plotting/frame/test_frame.py	2022-04-04 18:04:05.301456533 -0400
+@@ -682,7 +682,7 @@
+         # GH 8113, datetime.time type is not supported by matplotlib in scatter
+         df = DataFrame(np.random.randn(10), columns=["a"])
+         df["dtime"] = date_range(start="2014-01-01", freq="h", periods=10).time
+-        msg = "must be a string or a number, not 'datetime.time'"
++        msg = "must be a string or a (real )?number, not 'datetime.time'"
+ 
+         with pytest.raises(TypeError, match=msg):
+             df.plot(kind="scatter", x="dtime", y="a")
