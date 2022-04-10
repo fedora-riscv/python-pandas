@@ -1,8 +1,11 @@
-# Break cycles with optional dependencies
+# We need to break some cycles with optional dependencies for bootstrapping;
+# given that a conditional is needed, we take the opportunity to omit as many
+# optional dependencies as possible for bootstrapping.
 %bcond_with bootstrap
 
-# Run tests?
+# When not bootstrapping, run tests?
 %bcond_without tests
+%{?with_bootstrap:%undefine with_tests}
 # When running tests, run ones that are marked as slow?
 %bcond_without slow_tests
 # When running tests, run ones that cannot be run in parallel?
@@ -239,8 +242,16 @@ BuildRequires:  gcc-c++
 
 BuildRequires:  python3-devel
 
+# Since numpy is imported in setup.py, we need it to generate BR’s. This only
+# becomes obvious during bootstrapping, in which the many optional dependencies
+# that indirectly require numpy are removed.
+BuildRequires:  python3dist(numpy)
+
+%if %{without bootstrap}
+
 # doc/source/getting_started/install.rst “Recommended dependencies”
-# Since these provide large speedups, we make them hard dependencies.
+# Since these provide large speedups, we make them hard dependencies except
+# during bootstrapping.
 BuildRequires:  python3dist(numexpr) >= 2.7
 Requires:       python3dist(numexpr) >= 2.7
 BuildRequires:  python3dist(bottleneck) >= 1.2.1
@@ -256,10 +267,8 @@ BuildRequires:  python3dist(matplotlib) >= 2.2.3
 Recommends:     python3dist(matplotlib) >= 2.2.3
 BuildRequires:  python3dist(jinja2) >= 2.10
 Recommends:     python3dist(jinja2) >= 2.10
-%if %{without bootstrap}
 BuildRequires:  python3dist(tabulate) >= 0.8.7
 Recommends:     python3dist(tabulate) >= 0.8.7
-%endif
 
 # Computation
 # Documented minimum SciPy version is 1.12, but this is a typo since that
@@ -354,6 +363,8 @@ Recommends:     xsel
 BuildRequires:  python3dist(pandas-datareader)
 Recommends:     python3dist(pandas-datareader)
 
+%endif
+
 %description -n python3-pandas %_description
 
 
@@ -364,6 +375,8 @@ Summary:        Tests and test extras for Pandas
 License:        BSD and MIT
 
 Requires:       python3-pandas%{?_isa} = %{version}-%{release}
+
+%if %{without bootstrap}
 
 # Additional BR’s and weak dependencies below are generally those that don’t
 # provide enough added functionality to be weak dependencies of the library
@@ -425,6 +438,8 @@ Recommends:     python3dist(cftime)
 BuildRequires:  python3dist(ipython) >= 7.11.1
 Recommends:     python3dist(ipython) >= 7.11.1
 
+%endif
+
 
 %description -n python3-pandas+test
 These are the tests for python3-pandas. This package:
@@ -458,6 +473,8 @@ sed -r -i '/\boldest-supported-numpy\b/d' pyproject.toml
 
 
 %check
+%if %{with tests}
+
 # Clipboard tests don’t run without a graphical session, and it’s not worth
 # using xvfb-run just for them.
 m="${m-}${m+ and }not clipboard"
@@ -465,7 +482,6 @@ m="${m-}${m+ and }not clipboard"
 m="${m-}${m+ and }not single"
 %endif
 
-%if %{with tests}
 %ifarch %{arm32}
 # worker 'gw2' crashed while running '…'
 k="${k-}${k+ and }not test_append_frame_column_oriented"
@@ -589,8 +605,15 @@ export PYTHONHASHSEED="$(
     -k "${k-}" \
     -n %{?_smp_build_ncpus}%{?!_smp_build_ncpus:4} \
     -r sxX
+
 %else
-%pyproject_check_import -e 'pandas.conftest' -e 'pandas.tests.*'
+# Some imports require optional dependencies, and must be excluded during
+# bootstrapping.
+%{pyproject_check_import \
+  %{?with_bootstrap:-e 'pandas.io.formats.style'} \
+  %{?with_bootstrap:-e 'pandas.io.formats.style_render'} \
+  -e 'pandas.conftest' \
+  -e 'pandas.tests.*'}
 %endif
 
 
@@ -621,6 +644,7 @@ export PYTHONHASHSEED="$(
 - Carefully handle virtual Provides and licenses for bundled/copied code
 - Use pyproject-rpm-macros
 - Run the tests (requires switching to GitHub source)
+- Minimize optional dependencies when bootstrapping
 
 * Fri Jan 21 2022 Fedora Release Engineering <releng@fedoraproject.org> - 1.3.3-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_36_Mass_Rebuild
