@@ -18,7 +18,7 @@ Version:        1.3.5
 Release:        1%{?dist}
 Summary:        Python library providing high-performance data analysis tools
 
-# The entire source is BSD, except:
+# The entire source is BSD and covered by LICENSE, except:
 #
 # - pandas/util/version/__init__.py is (ASL 2.0 or BSD): see
 #   LICENSES/PACKAGING_LICENSE
@@ -38,13 +38,18 @@ Summary:        Python library providing high-performance data analysis tools
 #   https://github.com/pandas-dev/pandas/pull/46741 “Add a license file for
 #   klib (khash)”
 #
-# In the python3-pandas-tests subpackage:
+# In the python3-pandas+tests subpackage:
 #
 # - pandas/tests/io/data/spss/*.sav are MIT: see LICENSES/HAVEN_LICENSE and
 #   LICENSES/HAVEN_MIT
 #
 # Additionally:
 #
+# - pandas/tests/window/moments/test_moments_rolling.py is still BSD, but see
+#   also “Bottleneck license” in LICENSES/OTHER
+# - pandas/_libs/window/aggregations.pyx and (in the python3-pandas+tests
+#   subpackage) pandas/tests/window/moments/test_moments_rolling.py are still
+#   BSD, but see also “Bottleneck license” in LICENSES/OTHER
 # - pandas/_libs/tslibs/parsing.pyx is either BSD or
 #   (BSD and (BSD or ASL 2.0)), depending on whether all of the code from
 #   dateutil in the dateutil_parse() function is by contributors who have
@@ -57,6 +62,14 @@ Summary:        Python library providing high-performance data analysis tools
 # - LICENSES/OTHER suggests that some code may be derived from
 #   google-api-python-client under ASL 2.0, but a search for attribution
 #   comments did not turn up anything specific
+# - pandas/_libs/tslibs/src/datetime/np_datetime.{h,c} are still BSD, but see
+#   also LICENSES/NUMPY_LICENSE
+# - pandas/io/clipboard/ is still BSD, but see also “Pyperclip v1.3 license” in
+#   LICENSES/OTHER
+# - pandas/_testing/__init__.py is still BSD, but see also
+#   LICENSES/SCIPY_LICENSE
+# - pandas/_libs/src/ujson/lib/ is still BSD, but under
+#   LICENSES/ULTRAJSON_LICENSE
 #
 # Additionally, the following are not packaged and so do not affect the overall
 # License field:
