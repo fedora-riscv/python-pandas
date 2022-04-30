@@ -106,10 +106,6 @@ analysis tools for the Python programming language.}
 %package -n python3-pandas
 Summary:        %{summary}
 
-# pandas/tests/window/moments/test_moments_rolling.py: test_rolling_std_neg_sqrt()
-#
-#   unit test from Bottleneck
-#
 # pandas/_libs/window/aggregations.pyx:
 #
 #   Moving maximum / minimum code taken from Bottleneck under the terms
@@ -134,13 +130,6 @@ Provides:       bundled(python3dist(dateutil))
 # package all of klib separately because it is designed as a copylib, and many
 # of its components are not header-only.
 Provides:       bundled(klib-khash) = 0.2.6
-
-# pandas/tests/io/data/spss/*.sav:
-#
-# From Haven
-#
-# Not packaged (tests only) therefore not bundled
-# Provides:       bundled(R-haven)
 
 # pandas/_libs/src/headers/portable.h:
 #
@@ -437,6 +426,18 @@ Recommends:     python3dist(cftime)
 # environment.yml: optional
 BuildRequires:  python3dist(ipython) >= 7.11.1
 Recommends:     python3dist(ipython) >= 7.11.1
+
+# pandas/tests/io/data/spss/*.sav:
+#
+# From Haven
+Provides:       bundled(R-haven)
+
+# pandas/tests/window/moments/test_moments_rolling.py: test_rolling_std_neg_sqrt()
+#
+#   unit test from Bottleneck
+#
+# There is no reasonable path to unbundling a single unit test.
+Provides:       bundled(python3dist(bottleneck))
 
 %endif
 
