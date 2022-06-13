@@ -1,3 +1,4 @@
+%global _with_bootstrap 1
 # We need to break some cycles with optional dependencies for bootstrapping;
 # given that a conditional is needed, we take the opportunity to omit as many
 # optional dependencies as possible for bootstrapping.
@@ -15,7 +16,7 @@
 
 Name:           python-pandas
 Version:        1.3.5
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Python library providing high-performance data analysis tools
 
 # The entire source is BSD and covered by LICENSE, except:
@@ -649,6 +650,9 @@ export PYTHONHASHSEED="$(
 
 
 %changelog
+* Mon Jun 13 2022 Python Maint <python-maint@redhat.com> - 1.3.5-2
+- Bootstrap for Python 3.11
+
 * Sat Apr 02 2022 Benjamin A. Beasley <code@musicinmybrain.net> - 1.3.5-1
 - Update to 1.3.5
 - Drop compatibility with old RHEL releases that will not get this version anyway
