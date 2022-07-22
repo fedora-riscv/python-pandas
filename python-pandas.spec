@@ -15,7 +15,7 @@
 
 Name:           python-pandas
 Version:        1.3.5
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        Python library providing high-performance data analysis tools
 
 # The entire source is BSD and covered by LICENSE, except:
@@ -649,6 +649,9 @@ export PYTHONHASHSEED="$(
 
 
 %changelog
+* Fri Jul 22 2022 Fedora Release Engineering <releng@fedoraproject.org> - 1.3.5-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_37_Mass_Rebuild
+
 * Wed Jun 29 2022 Python Maint <python-maint@redhat.com> - 1.3.5-3
 - Rebuilt for Python 3.11
 
