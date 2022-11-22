@@ -13,67 +13,63 @@
 
 Name:           python-pandas
 Version:        1.5.1
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Python library providing high-performance data analysis tools
 
-# The entire source is BSD and covered by LICENSE, except:
+# The entire source is BSD-3-Clause and covered by LICENSE, except:
 #
-# - pandas/util/version/__init__.py is (ASL 2.0 or BSD): see
+# - pandas/util/version/__init__.py is (Apache-2.0 OR BSD-2-Clause): see
 #   LICENSES/PACKAGING_LICENSE
-# - pandas/_libs/src/headers/portable.h is (BSD and MIT), because it contains
-#   some trivial content under the overall BSD license but also some macros
-#   from MUSL libc under the MIT license: see LICENSES/MUSL_LICENSE
-# - pandas/_libs/src/parser/tokenizer.c is (BSD and Python): see
+# - pandas/_libs/src/headers/portable.h is (BSD-3-Clause AND MIT), because it
+#   contains some trivial content under the overall BSD-3-Clause license but
+#   also some macros from MUSL libc under the MIT license: see
+#   LICENSES/MUSL_LICENSE
+# - pandas/_libs/src/parser/tokenizer.c is (BSD-3-Clause AND Python-2.0.1): see
 #   LICENSES/PSF_LICENSE
-# - pandas/io/sas/sas7bdat.py is (BSD and MIT), because it is mostly under the
-#   overall BSD license but is also based on
+# - pandas/io/sas/sas7bdat.py is (BSD-3-Clause and MIT), because it is mostly
+#   under the overall BSD-3-Clause license but is also based on
 #   https://bitbucket.org/jaredhobbs/sas7bdat: see LICENSES/SAS7BDAT_LICENSE
-# - pandas/core/accessor.py is (BSD and ASL 2.0), because it is partially under
-#   the overall BSD license but is also based on xarray: see
-#   LICENSES/XARRAY_LICENSE
-# - pandas/_libs/src/klib/khash.h is MIT; compiled extension libraries
-#   including it along with BSD code will be (BSD and MIT); see
-#   https://github.com/pandas-dev/pandas/pull/46741 “Add a license file for
-#   klib (khash)”
+# - pandas/core/accessor.py is (BSD-3-Clause AND Apache-2.0), because it is
+#   partially under the overall BSD-3-Clause license but is also based on
+#   xarray: see LICENSES/XARRAY_LICENSE
+# - pandas/_libs/src/klib/khash.h is MIT: see LICENSES/KLIB_LICENSE
+# - pandas/_libs/window/aggregations.pyx is (BSD-3-Clause AND BSD-2-Clause):
+#   see “Bottleneck license” in LICENSES/OTHER
 #
 # In the python3-pandas+tests subpackage:
 #
 # - pandas/tests/io/data/spss/*.sav are MIT: see LICENSES/HAVEN_LICENSE and
 #   LICENSES/HAVEN_MIT
+# - pandas/tests/window/test_rolling.py is (BSD-3-Clause AND BSD-2-Clause)
+#   since test_rolling_std_neg_sqrt is from Bottleneck: see “Bottleneck license”
+#   in LICENSES/OTHER
 #
 # Additionally:
 #
-# - pandas/tests/window/moments/test_moments_rolling.py is still BSD, but see
-#   also “Bottleneck license” in LICENSES/OTHER
-# - pandas/_libs/window/aggregations.pyx and (in the python3-pandas+tests
-#   subpackage) pandas/tests/window/moments/test_moments_rolling.py are still
-#   BSD, but see also “Bottleneck license” in LICENSES/OTHER
-# - pandas/_libs/tslibs/parsing.pyx is either BSD or
-#   (BSD and (BSD or ASL 2.0)), depending on whether all of the code from
-#   dateutil in the dateutil_parse() function is by contributors who have
-#   agreed to re-license their previously submitted code under ASL 2.0—a
-#   question we have not attempted to resolve, and which is not particularly
-#   important here: see LICENSES/DATEUTIL_LICENSE. We consider that the
-#   effective license of any compiled extensions containing this code can be
-#   simplified to “BSD” in either case. See:
-#   https://fedoraproject.org/wiki/Licensing:FAQ
+# - pandas/_libs/tslibs/parsing.pyx is BSD-3-Clause rather than
+#   (BSD-3-Clause AND (BSD-3-Clause OR Apache-2.0)), because it appears that at
+#   least some trivial content in the code copied from dateutil in the
+#   dateutil_parse() function (as of
+#   https://github.com/dateutil/dateutil/pull/732) is by dateutil contributors
+#   who have not agreed to re-license their previously submitted code: see
+#   LICENSES/DATEUTIL_LICENSE.
 # - LICENSES/OTHER suggests that some code may be derived from
-#   google-api-python-client under ASL 2.0, but a search for attribution
+#   google-api-python-client under Apache-2.0, but a search for attribution
 #   comments did not turn up anything specific
-# - pandas/_libs/tslibs/src/datetime/np_datetime.{h,c} are still BSD, but see
-#   also LICENSES/NUMPY_LICENSE
-# - pandas/io/clipboard/ is still BSD, but see also “Pyperclip v1.3 license” in
-#   LICENSES/OTHER
-# - pandas/_testing/__init__.py is still BSD, but see also
+# - pandas/_libs/tslibs/src/datetime/np_datetime.{h,c} are still BSD-3-Clause,
+#   but see also LICENSES/NUMPY_LICENSE
+# - pandas/io/clipboard/ is still BSD-3-Clause, but see also “Pyperclip v1.3
+#   license” in LICENSES/OTHER
+# - pandas/_testing/__init__.py is still BSD-3-Clause, but see also
 #   LICENSES/SCIPY_LICENSE
-# - pandas/_libs/src/ujson/lib/ is still BSD, but under
+# - pandas/_libs/src/ujson/lib/ is still BSD-3-Clause, but under
 #   LICENSES/ULTRAJSON_LICENSE
 #
 # Additionally, the following are not packaged and so do not affect the overall
 # License field:
 #
 # - scripts/no_bool_in_generic.py is MIT: see LICENSES/PYUPGRADE_LICENSE
-License:        BSD and (BSD or ASL 2.0) and (BSD and ASL 2.0) and (BSD and MIT) and (BSD and Python)
+License:        BSD-3-Clause AND (Apache-2.0 OR BSD-2-Clause) AND (BSD-3-Clause AND Apache-2.0) AND (BSD-3-Clause AND MIT) AND (BSD-3-Clause AND Python-2.0.1) AND MIT AND (BSD-3-Clause AND BSD-2-Clause)
 URL:            https://pandas.pydata.org/
 # The GitHub archive contains tests; the PyPI sdist does not.
 Source0:        https://github.com/pandas-dev/pandas/archive/v%{version}/pandas-%{version}.tar.gz
@@ -341,7 +337,7 @@ Recommends:     python3dist(pandas-datareader)
 Summary:        Tests and test extras for Pandas
 
 # See comment above base package License tag for licensing breakdown.
-License:        BSD and MIT
+License:        BSD-3-Clause AND MIT
 
 Requires:       python3-pandas%{?_isa} = %{version}-%{release}
 
@@ -412,7 +408,7 @@ Recommends:     python3dist(ipython) >= 7.11.1
 # From Haven
 Provides:       bundled(R-haven)
 
-# pandas/tests/window/moments/test_moments_rolling.py: test_rolling_std_neg_sqrt()
+# pandas/tests/window/test_rolling.py: test_rolling_std_neg_sqrt()
 #
 #   unit test from Bottleneck
 #
@@ -615,6 +611,9 @@ export PYTHONHASHSEED="$(
 
 
 %changelog
+* Wed Nov 23 2022 Benjamin A. Beasley <code@musicinmybrain.net> - 1.5.1-2
+- Update license breakdown and convert to SPDX
+
 * Mon Nov 07 2022 Jonathan Wright <jonathan@almalinux.org> - 1.5.1-1
 - Update to 1.5.1 rhbz#2014890
 
