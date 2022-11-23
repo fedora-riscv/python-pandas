@@ -295,8 +295,11 @@ Recommends:     python3dist(tables) >= 3.6.1
 # python-fastparquet is not currently packaged:
 # BuildRequires:  python3dist(fastparquet) >= 0.4
 # Recommends:     python3dist(fastparquet) >= 0.4
+# libarrow does not support 32-bit architectures:
+%ifnarch %{ix86} %{arm32}
 BuildRequires:  python3dist(pyarrow) >= 1.0.1
 Recommends:     python3dist(pyarrow) >= 1.0.1
+%endif
 # python-pyreadstat is not currently packaged:
 # BuildRequires:  python3dist(pyreadstat) >= 1.1.2
 # Recommends:     python3dist(pyreadstat) >= 1.1.2
@@ -626,6 +629,7 @@ export PYTHONHASHSEED="$(
 * Wed Nov 23 2022 Benjamin A. Beasley <code@musicinmybrain.net> - 1.5.1-2
 - Update license breakdown and convert to SPDX
 - Fully update optional dependencies and their versions
+- Do not BR/Recommend pyarrow on 32-bit arches, where it is unavailable
 
 * Mon Nov 07 2022 Jonathan Wright <jonathan@almalinux.org> - 1.5.1-1
 - Update to 1.5.1 rhbz#2014890
