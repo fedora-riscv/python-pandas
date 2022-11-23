@@ -228,13 +228,15 @@ Requires:       python3dist(bottleneck) >= 1.3.2
 # doc/source/getting_started/install.rst “Optional dependencies”
 # We BR all weak dependencies to ensure they are installable.
 
+# Timezones
+BuildRequires:  tzdata >= 2022a
+Recommends:     tzdata >= 2022a
+
 # Visualization
-BuildRequires:  python3dist(setuptools) >= 38.6
-Recommends:     python3dist(setuptools) >= 38.6
 BuildRequires:  python3dist(matplotlib) >= 3.3.2
 Recommends:     python3dist(matplotlib) >= 3.3.2
-BuildRequires:  python3dist(jinja2) >= 3.0.0
-Recommends:     python3dist(jinja2) >= 3.0.0
+BuildRequires:  python3dist(jinja2) >= 3
+Recommends:     python3dist(jinja2) >= 3
 BuildRequires:  python3dist(tabulate) >= 0.8.9
 Recommends:     python3dist(tabulate) >= 0.8.9
 
@@ -244,8 +246,8 @@ Recommends:     python3dist(scipy) >= 1.7.1
 # python-numba is not currently packaged:
 # BuildRequires:  python3dist(numba) >= 0.46
 # Recommends:     python3dist(numba) >= 0.46
-BuildRequires:  python3dist(xarray) >= 1.19.0
-Recommends:     python3dist(xarray) >= 1.19.0
+BuildRequires:  python3dist(xarray) >= 1.19
+Recommends:     python3dist(xarray) >= 1.19
 
 # Excel files
 BuildRequires:  python3dist(xlrd) >= 2.0.1
@@ -257,8 +259,8 @@ Recommends:     python3dist(xlsxwriter) >= 1.4.3
 BuildRequires:  python3dist(openpyxl) >= 3.0.7
 Recommends:     python3dist(openpyxl) >= 3.0.7
 # python-pyxlsb is not currently packaged:
-# BuildRequires:  python3dist(pyxlsb) >= 1.0.6
-# Recommends:     python3dist(pyxlsb) >= 1.0.6
+# BuildRequires:  python3dist(pyxlsb) >= 1.0.8
+# Recommends:     python3dist(pyxlsb) >= 1.0.8
 # Not in doc/source/getting_started/install.rst, but in environment.yml and in
 # some doc-strings:
 BuildRequires:  python3dist(odfpy) >= 1.4.1
@@ -296,20 +298,22 @@ Recommends:     python3dist(tables) >= 3.6.1
 BuildRequires:  python3dist(pyarrow) >= 1.0.1
 Recommends:     python3dist(pyarrow) >= 1.0.1
 # python-pyreadstat is not currently packaged:
-# BuildRequires:  python3dist(pyreadstat)
-# Recommends:     python3dist(pyreadstat)
+# BuildRequires:  python3dist(pyreadstat) >= 1.1.2
+# Recommends:     python3dist(pyreadstat) >= 1.1.2
 
 # Access data in the cloud
-BuildRequires:  python3dist(fsspec) >= 2021.07.0
-Recommends:     python3dist(fsspec) >= 2021.07.0
-#BuildRequires:  python3dist(gcsfs) >= 2021.07.0
-#Recommends:     python3dist(gcsfs) >= 2021.07.0
+BuildRequires:  python3dist(fsspec) >= 2021.7
+Recommends:     python3dist(fsspec) >= 2021.7
+# python-gcsfs is packaged, but is badly out of date:
+# https://bugzilla.redhat.com/show_bug.cgi?id=2136233
+# BuildRequires:  python3dist(gcsfs) >= 2021.7
+# Recommends:     python3dist(gcsfs) >= 2021.7
 # python-pandas-gbq is not currently packaged:
-# BuildRequires:  python3dist(pandas-gbq) >= 0.12
-# Recommends:     python3dist(pandas-gbq) >= 0.12
+# BuildRequires:  python3dist(pandas-gbq) >= 0.15
+# Recommends:     python3dist(pandas-gbq) >= 0.15
 # python-s3fs is not currently packaged:
-# BuildRequires:  python3dist(s3fs) >= 0.4
-# Recommends:     python3dist(s3fs) >= 0.4
+# BuildRequires:  python3dist(s3fs) >= 2021.8
+# Recommends:     python3dist(s3fs) >= 2021.8
 
 # Clipboard
 BuildRequires:  python3dist(pyqt5)
@@ -320,6 +324,14 @@ BuildRequires:  xclip
 Recommends:     xclip
 BuildRequires:  xsel
 Recommends:     xsel
+
+# Compression
+BuildRequires:  python3dist(brotli) >= 0.7
+Recommends:     python3dist(brotli) >= 0.7
+BuildRequires:  python3dist(python-snappy) >= 0.6
+Recommends:     python3dist(python-snappy) >= 0.6
+BuildRequires:  python3dist(zstandard) >= 0.15.2
+Recommends:     python3dist(zstandard) >= 0.15.2
 
 # This is just an “ecosystem” package in the upstream documentation, but there
 # is an integration test for it. This package historically had a weak
@@ -613,6 +625,7 @@ export PYTHONHASHSEED="$(
 %changelog
 * Wed Nov 23 2022 Benjamin A. Beasley <code@musicinmybrain.net> - 1.5.1-2
 - Update license breakdown and convert to SPDX
+- Fully update optional dependencies and their versions
 
 * Mon Nov 07 2022 Jonathan Wright <jonathan@almalinux.org> - 1.5.1-1
 - Update to 1.5.1 rhbz#2014890
