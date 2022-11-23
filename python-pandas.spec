@@ -566,25 +566,16 @@ export PYTHONHASHSEED="$(
 
 %if 0%{?__isa_bits} == 32
 # Limit parallelism in tests to prevent memory exhaustion
-%global testn_max 8
-%if 0%{?fedora} > 35
-%constrain_build -c %{testn_max}
-%else
-%if %{?_smp_build_ncpus}%{?!_smp_build_ncpus:4} > %{testn_max}
-%global _smp_build_ncpus %{testn_max}
-%endif
+%constrain_build -c 8
 %endif
 
-%endif
-
-# Fallback parallelism of 4 is from upstream CI
 %pytest -v '%{buildroot}%{python3_sitearch}/pandas' \
     %{?!with_slow_tests:--skip-slow} \
     --skip-network \
     --skip-db \
     -m "${m-}" \
     -k "${k-}" \
-    -n %{?testn_max}%{!?testn_max:4} \
+    -n %{_smp_build_ncpus} \
     -r sxX
 
 %else
@@ -620,7 +611,7 @@ export PYTHONHASHSEED="$(
 - Update license breakdown and convert to SPDX
 - Fully update optional dependencies and their versions
 - Do not BR/Recommend pyarrow on 32-bit arches, where it is unavailable
-- Drop accommodations for 32-bit ARM
+- Drop accommodations for 32-bit ARM and Fedoras older than 36
 
 * Mon Nov 07 2022 Jonathan Wright <jonathan@almalinux.org> - 1.5.1-1
 - Update to 1.5.1 rhbz#2014890
