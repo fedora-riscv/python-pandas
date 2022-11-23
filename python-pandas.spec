@@ -296,7 +296,7 @@ Recommends:     python3dist(tables) >= 3.6.1
 # BuildRequires:  python3dist(fastparquet) >= 0.4
 # Recommends:     python3dist(fastparquet) >= 0.4
 # libarrow does not support 32-bit architectures:
-%ifnarch %{ix86} %{arm32}
+%if 0%{?__isa_bits} != 32
 BuildRequires:  python3dist(pyarrow) >= 1.0.1
 Recommends:     python3dist(pyarrow) >= 1.0.1
 %endif
@@ -474,25 +474,20 @@ m="${m-}${m+ and }not clipboard"
 m="${m-}${m+ and }not single"
 %endif
 
-%ifarch %{arm32}
-# worker 'gw2' crashed while running '…'
-k="${k-}${k+ and }not test_append_frame_column_oriented"
-%endif
-
-%ifarch %{ix86} %{arm32}
+%ifarch %{ix86}
 # This “high-memory” test is just not appropriate for 32-bit platforms:
 # E       OverflowError: join() result is too long for a Python string
 k="${k-}${k+ and }not test_bytes_exceed_2gb[c_high]"
 %endif
 
-%ifarch ppc64le s390x %{arm32}
+%ifarch ppc64le s390x
 # TODO: Why does this fail?
 # >       with pytest.raises(TypeError, match=msg):
 # E       Failed: DID NOT RAISE <class 'TypeError'>
 k="${k-}${k+ and }not (TestFloatSubtype and test_subtype_integer_errors)"
 %endif
 
-%ifarch %{ix86} %{arm32}
+%ifarch %{ix86}
 # TODO: Why does this fail?
 # E           assert 243.164 == 243.16400000000002
 # Fails for both [c_high] and [c_low].
@@ -507,7 +502,7 @@ k="${k-}${k+ and }not test_float_precision_options"
 k="${k-}${k+ and }not test_flush"
 %endif
 
-%ifarch %{arm64} %{arm32}
+%ifarch %{arm64}
 # TODO: Why does this fail?
 # >           with pytest.raises(ValueError, match="external reference.*"):
 # E           Failed: DID NOT RAISE <class 'ValueError'>
@@ -537,7 +532,7 @@ k="${k-}${k+ and }not test_markdown_options"
 # E           assert 0 == 108
 k="${k-}${k+ and }not test_memory_usage[series-with-empty-index]"
 
-%ifarch %{ix86} %{arm32}
+%ifarch %{ix86}
 # TODO: Why does this fail?
 # E   AssertionError: DataFrame.iloc[:, 2] (column name="C") are different
 # E
@@ -552,11 +547,6 @@ k="${k-}${k+ and }not test_read_csv"
 %ifarch ppc64le s390x
 # TODO: Why does this fail? The differences are large!
 k="${k-}${k+ and }not test_rolling_var_numerical_issues"
-%endif
-
-%ifarch %{arm32}
-# worker 'gw4' crashed while running '…'
-k="${k-}${k+ and }not test_select_filter_corner"
 %endif
 
 # Ensure pytest doesn’t find the “un-built” library. We can get away with this
@@ -574,7 +564,7 @@ export PYTHONHASHSEED="$(
   %{python3} -c 'import random; print(random.randint(1, 4294967295))'
 )"
 
-%ifarch %{ix86} %{arm32}
+%if 0%{?__isa_bits} == 32
 # Limit parallelism in tests to prevent memory exhaustion
 %global testn_max 8
 %if 0%{?fedora} > 35
@@ -630,6 +620,7 @@ export PYTHONHASHSEED="$(
 - Update license breakdown and convert to SPDX
 - Fully update optional dependencies and their versions
 - Do not BR/Recommend pyarrow on 32-bit arches, where it is unavailable
+- Drop accommodations for 32-bit ARM
 
 * Mon Nov 07 2022 Jonathan Wright <jonathan@almalinux.org> - 1.5.1-1
 - Update to 1.5.1 rhbz#2014890
