@@ -474,24 +474,11 @@ m="${m-}${m+ and }not clipboard"
 m="${m-}${m+ and }not single"
 %endif
 
-%ifarch %{ix86}
-# This “high-memory” test is just not appropriate for 32-bit platforms:
-# E       OverflowError: join() result is too long for a Python string
-k="${k-}${k+ and }not test_bytes_exceed_2gb[c_high]"
-%endif
-
 %ifarch ppc64le s390x
 # TODO: Why does this fail?
 # >       with pytest.raises(TypeError, match=msg):
 # E       Failed: DID NOT RAISE <class 'TypeError'>
 k="${k-}${k+ and }not (TestFloatSubtype and test_subtype_integer_errors)"
-%endif
-
-%ifarch %{ix86}
-# TODO: Why does this fail?
-# E           assert 243.164 == 243.16400000000002
-# Fails for both [c_high] and [c_low].
-k="${k-}${k+ and }not test_float_precision_options"
 %endif
 
 %ifarch s390x
@@ -532,14 +519,6 @@ k="${k-}${k+ and }not test_markdown_options"
 # E           assert 0 == 108
 k="${k-}${k+ and }not test_memory_usage[series-with-empty-index]"
 
-%ifarch %{ix86}
-# TODO: Why does this fail?
-# E   AssertionError: DataFrame.iloc[:, 2] (column name="C") are different
-# E
-# E   DataFrame.iloc[:, 2] (column name="C") values are different (11.57513 %)
-k="${k-}${k+ and }not (TestMerge and test_int64_overflow_issues)"
-%endif
-
 # TODO: Why does this fail? An fsspec.implementations.memory.MemoryFile does
 # not seem to work as expected.
 k="${k-}${k+ and }not test_read_csv"
@@ -547,6 +526,56 @@ k="${k-}${k+ and }not test_read_csv"
 %ifarch ppc64le s390x
 # TODO: Why does this fail? The differences are large!
 k="${k-}${k+ and }not test_rolling_var_numerical_issues"
+%endif
+
+%ifarch %{ix86}
+# These failures are i686-specific; most are likely 32-bit issues. It’s not
+# really worth trying to fix them.
+
+# This “high-memory” test is just not appropriate for 32-bit platforms:
+# E       OverflowError: join() result is too long for a Python string
+k="${k-}${k+ and }not test_bytes_exceed_2gb[c_high]"
+
+# E           assert 243.164 == 243.16400000000002
+# Fails for both [c_high] and [c_low].
+k="${k-}${k+ and }not test_float_precision_options"
+
+# E   AssertionError: DataFrame.iloc[:, 2] (column name="C") are different
+# E
+# E   DataFrame.iloc[:, 2] (column name="C") values are different (11.57513 %)
+k="${k-}${k+ and }not (TestMerge and test_int64_overflow_issues)"
+# E   AssertionError: DataFrame.iloc[:, 2] (column name="C") are different
+# E
+# E   DataFrame.iloc[:, 2] (column name="C") values are different (11.66363 %)
+# E   [index]: [0, 1, …
+# Fails for [left], [right], [outer], and [inner]
+k="${k-}${k+ and }not (TestMerge and test_int64_overflow_how_merge)"
+
+# E           AssertionError: Attributes of DataFrame.iloc[:, 1] (column name="b") are different
+# E
+# E           Attribute "dtype" are different
+# E           [left]:  int32
+# E           [right]: int64
+k="${k-}${k+ and }not test_frame_setitem_dask_array_into_new_col"
+
+# E       IndexError: index 0 is out of bounds for axis 0 with size 0
+k="${k-}${k+ and }not (TestPivotTable and test_pivot_number_of_levels_larger_than_int32)"
+k="${k-}${k+ and }not (TestStackUnstackMultiLevel and test_unstack_number_of_levels_larger_than_int32)"
+
+# E       OverflowError: timestamp out of range for platform time_t
+# These fail only for the [tzlocal()] case, but it’s not clear how to validly
+# name those in a pytest keyword expression due to the parentheses in tzlocal()
+k="${k-}${k+ and }not (TestTimestampProperties and test_is_leap_year)"
+k="${k-}${k+ and }not (TestBusinessDay and test_apply_out_of_range)"
+k="${k-}${k+ and }not (TestBusinessHour and test_apply_out_of_range)"
+k="${k-}${k+ and }not (TestCustomBusinessDay and test_apply_out_of_range)"
+k="${k-}${k+ and }not (TestCustomBusinessHour and test_apply_out_of_range)"
+k="${k-}${k+ and }not (TestWeek and test_apply_out_of_range)"
+
+# E       AssertionError: Index are different
+# E
+# E       Index length are different
+k="${k-}${k+ and }not (TestDateRanges and test_date_range_int64_overflow_stride_endpoint_different_signs)"
 %endif
 
 # Ensure pytest doesn’t find the “un-built” library. We can get away with this
@@ -612,6 +641,7 @@ export PYTHONHASHSEED="$(
 - Fully update optional dependencies and their versions
 - Do not BR/Recommend pyarrow on 32-bit arches, where it is unavailable
 - Drop accommodations for 32-bit ARM and Fedoras older than 36
+- Update test skips for i686
 
 * Mon Nov 07 2022 Jonathan Wright <jonathan@almalinux.org> - 1.5.1-1
 - Update to 1.5.1 rhbz#2014890
