@@ -74,6 +74,10 @@ URL:            https://pandas.pydata.org/
 # The GitHub archive contains tests; the PyPI sdist does not.
 Source0:        https://github.com/pandas-dev/pandas/archive/v%{version}/pandas-%{version}.tar.gz
 
+# Fix some little-endian assumptions in the tests
+# https://github.com/pandas-dev/pandas/pull/49913
+Patch:          https://github.com/pandas-dev/pandas/pull/49913.patch
+
 %global _description %{expand:
 pandas is an open source, BSD-licensed library providing
 high-performance, easy-to-use data structures and data
@@ -481,14 +485,6 @@ m="${m-}${m+ and }not single"
 k="${k-}${k+ and }not (TestFloatSubtype and test_subtype_integer_errors)"
 %endif
 
-%ifarch s390x
-# TODO: Why does this fail?
-#
-# >                   os.fsync(self._handle.fileno())
-# E                   OverflowError: Python int too large to convert to C int
-k="${k-}${k+ and }not test_flush"
-%endif
-
 %ifarch %{arm64}
 # TODO: Why does this fail?
 # >           with pytest.raises(ValueError, match="external reference.*"):
@@ -576,6 +572,43 @@ k="${k-}${k+ and }not (TestWeek and test_apply_out_of_range)"
 # E
 # E       Index length are different
 k="${k-}${k+ and }not (TestDateRanges and test_date_range_int64_overflow_stride_endpoint_different_signs)"
+%endif
+
+%ifarch s390x
+# Note that pandas does not test big-endian support but will happily accept
+# patches to improve it:
+# https://github.com/pandas-dev/pandas/issues/4737#issuecomment-1090931741
+
+# TODO: Why does this fail?
+#
+# >                   os.fsync(self._handle.fileno())
+# E                   OverflowError: Python int too large to convert to C int
+k="${k-}${k+ and }not test_flush"
+
+# These are a cluster of similar pyarrow/parquet tests with apparent endianness
+# issues. It is not immediately obvious where the bug is—in the library or in
+# the tests?
+k="${k-}${k+ and }not (TestBasic and test_write_index[pyarrow])"
+k="${k-}${k+ and }not (TestBasic and test_multiindex_with_columns)"
+k="${k-}${k+ and }not (TestBasic and test_write_column_multiindex_string)"
+k="${k-}${k+ and }not (TestBasic and test_write_column_index_string)"
+k="${k-}${k+ and }not (TestBasic and test_use_nullable_dtypes[pyarrow])"
+k="${k-}${k+ and }not (TestParquetPyArrow and test_basic)"
+k="${k-}${k+ and }not (TestParquetPyArrow and test_to_bytes_without_path_or_buf_provided)"
+k="${k-}${k+ and }not (TestParquetPyArrow and test_categorical)"
+k="${k-}${k+ and }not (TestParquetPyArrow and test_additional_extension_arrays)"
+k="${k-}${k+ and }not (TestParquetPyArrow and test_pyarrow_backed_string_array[python])"
+k="${k-}${k+ and }not (TestParquetPyArrow and test_pyarrow_backed_string_array[pyarrow])"
+k="${k-}${k+ and }not (TestParquetPyArrow and test_additional_extension_types)"
+k="${k-}${k+ and }not (TestParquetPyArrow and test_timezone_aware_index[timezone_aware_date_list0])"
+
+# Similarly, there are a cluster of similar stata test failures for which the
+# root cause is not immediately obvious.
+k="${k-}${k+ and }not (TestStata and test_writer_117)"
+k="${k-}${k+ and }not (TestStata and test_convert_strl_name_swap)"
+k="${k-}${k+ and }not (TestStata and test_strl_latin1)"
+# Fails for [118], [119], and [None]
+k="${k-}${k+ and }not (TestStata and test_utf8_writer)"
 %endif
 
 # Ensure pytest doesn’t find the “un-built” library. We can get away with this

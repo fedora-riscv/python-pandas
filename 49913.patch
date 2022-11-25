@@ -1,0 +1,70 @@
+From a7a17abcd9f03651ae07a0aa138668fd49287466 Mon Sep 17 00:00:00 2001
+From: "Benjamin A. Beasley" <code@musicinmybrain.net>
+Date: Fri, 25 Nov 2022 09:06:56 -0500
+Subject: [PATCH] TST: Fix some little-endian assumptions
+
+See previous PR#46681.
+---
+ pandas/tests/arrays/floating/test_arithmetic.py  |  2 +-
+ pandas/tests/frame/methods/test_to_records.py    | 14 ++++++++++++--
+ pandas/tests/scalar/timedelta/test_arithmetic.py |  2 +-
+ 3 files changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/pandas/tests/arrays/floating/test_arithmetic.py b/pandas/tests/arrays/floating/test_arithmetic.py
+index ec7419d6346a8..fdf2b00bdbac1 100644
+--- a/pandas/tests/arrays/floating/test_arithmetic.py
++++ b/pandas/tests/arrays/floating/test_arithmetic.py
+@@ -162,7 +162,7 @@ def test_error_invalid_values(data, all_arithmetic_operators):
+             "not all arguments converted during string formatting",
+             "can't multiply sequence by non-int of type 'float'",
+             "ufunc 'subtract' cannot use operands with types dtype",
+-            r"ufunc 'add' cannot use operands with types dtype\('<M8\[ns\]'\)",
++            rf"ufunc 'add' cannot use operands with types dtype\('{tm.ENDIAN}M8\[ns\]'\)",
+             r"ufunc 'add' cannot use operands with types dtype\('float\d{2}'\)",
+             "cannot subtract DatetimeArray from ndarray",
+         ]
+diff --git a/pandas/tests/frame/methods/test_to_records.py b/pandas/tests/frame/methods/test_to_records.py
+index 32cccddc9d515..701063c277226 100644
+--- a/pandas/tests/frame/methods/test_to_records.py
++++ b/pandas/tests/frame/methods/test_to_records.py
+@@ -96,7 +96,13 @@ def test_to_records_index_name(self):
+             + [np.asarray(df.iloc[:, i]) for i in range(3)],
+             dtype={
+                 "names": ["A", "level_1", "0", "1", "2"],
+-                "formats": ["O", "O", "<f8", "<f8", "<f8"],
++                "formats": [
++                    "O",
++                    "O",
++                    f"{tm.ENDIAN}f8",
++                    f"{tm.ENDIAN}f8",
++                    f"{tm.ENDIAN}f8",
++                ],
+             },
+         )
+         tm.assert_numpy_array_equal(result, expected)
+@@ -123,7 +129,11 @@ def test_to_records_index_dtype(self):
+                 ("2022-01-01", "2022-01-01", "2022-01-01"),
+                 ("2022-01-02", "2022-01-02", "2022-01-02"),
+             ],
+-            dtype=[("1", "<M8[ns]"), ("2", "<M8[ns]"), ("3", "<M8[ns]")],
++            dtype=[
++                ("1", f"{tm.ENDIAN}M8[ns]"),
++                ("2", f"{tm.ENDIAN}M8[ns]"),
++                ("3", f"{tm.ENDIAN}M8[ns]"),
++            ],
+         )
+ 
+         result = df.to_records(index=False)
+diff --git a/pandas/tests/scalar/timedelta/test_arithmetic.py b/pandas/tests/scalar/timedelta/test_arithmetic.py
+index 1c3868bc85fd5..526b558ecb813 100644
+--- a/pandas/tests/scalar/timedelta/test_arithmetic.py
++++ b/pandas/tests/scalar/timedelta/test_arithmetic.py
+@@ -435,7 +435,7 @@ def test_td_mul_td64_ndarray_invalid(self):
+ 
+         msg = (
+             "ufunc '?multiply'? cannot use operands with types "
+-            r"dtype\('<m8\[ns\]'\) and dtype\('<m8\[ns\]'\)"
++            rf"dtype\('{tm.ENDIAN}m8\[ns\]'\) and dtype\('{tm.ENDIAN}m8\[ns\]'\)"
+         )
+         with pytest.raises(TypeError, match=msg):
+             td * other
