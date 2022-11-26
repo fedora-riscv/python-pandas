@@ -12,8 +12,8 @@
 %bcond_without single_tests
 
 Name:           python-pandas
-Version:        1.5.1
-Release:        2%{?dist}
+Version:        1.5.2
+Release:        1%{?dist}
 Summary:        Python library providing high-performance data analysis tools
 
 # The entire source is BSD-3-Clause and covered by LICENSE, except:
@@ -572,6 +572,15 @@ k="${k-}${k+ and }not (TestWeek and test_apply_out_of_range)"
 # E
 # E       Index length are different
 k="${k-}${k+ and }not (TestDateRanges and test_date_range_int64_overflow_stride_endpoint_different_signs)"
+
+# New in 1.5.2:
+# E       AssertionError: assert {} == {'a': 1}
+# E         Right contains 1 more item:
+# E         {'a': 1}
+# E         Full diff:
+# E         - {'a': 1}
+# E         + {}
+k="${k-}${k+ and }not test_binops[sub-args4-right]"
 %endif
 
 %ifarch s390x
@@ -669,6 +678,9 @@ export PYTHONHASHSEED="$(
 
 
 %changelog
+* Sat Nov 26 2022 Benjamin A. Beasley <code@musicinmybrain.net> - 1.5.2-1
+- Update to 1.5.2
+
 * Wed Nov 23 2022 Benjamin A. Beasley <code@musicinmybrain.net> - 1.5.1-2
 - Update license breakdown and convert to SPDX
 - Fully update optional dependencies and their versions
