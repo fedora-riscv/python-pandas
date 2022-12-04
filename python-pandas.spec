@@ -625,6 +625,14 @@ k="${k-}${k+ and }not (TestStata and test_strl_latin1)"
 k="${k-}${k+ and }not (TestStata and test_utf8_writer)"
 %endif
 
+%if 0%{?fedora} > 37
+# The text of an error message has changed in libarrow/pyarrow 10, which is
+# harmless but breaks one test. Disable it until a patch is available upstream.
+#   CI: pyarrow 10 broke our ci
+#   https://github.com/pandas-dev/pandas/issues/50058
+k="${k-}${k+ and }not test_arrow_array"
+%endif
+
 # Ensure pytest doesn’t find the “un-built” library. We can get away with this
 # approach because the tests are also in the installed library. We can’t simply
 # “cd” to the buildroot’s python3_sitearch because testing leaves files in the
@@ -686,6 +694,7 @@ export PYTHONHASHSEED="$(
 * Sun Dec 04 2022 Benjamin A. Beasley <code@musicinmybrain.net> - 1.5.2-1
 - Update to 1.5.2
 - Re-enable python-gcsfs BR/weak-dep. on F38 and later
+- Work around a harmless test failure with libarrow/pyarrow 10
 
 * Wed Nov 23 2022 Benjamin A. Beasley <code@musicinmybrain.net> - 1.5.1-2
 - Update license breakdown and convert to SPDX
