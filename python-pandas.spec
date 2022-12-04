@@ -311,10 +311,14 @@ Recommends:     python3dist(pyarrow) >= 1.0.1
 # Access data in the cloud
 BuildRequires:  python3dist(fsspec) >= 2021.7
 Recommends:     python3dist(fsspec) >= 2021.7
-# python-gcsfs is packaged, but is badly out of date:
+# python-gcsfs is packaged, but is badly out of date in F37 and older:
 # https://bugzilla.redhat.com/show_bug.cgi?id=2136233
-# BuildRequires:  python3dist(gcsfs) >= 2021.7
-# Recommends:     python3dist(gcsfs) >= 2021.7
+# Since we will not package pandas 1.5.x for F36 and older, the conditional
+# checks for F37 only.
+%if !0%{?fc37}
+BuildRequires:  python3dist(gcsfs) >= 2021.7
+Recommends:     python3dist(gcsfs) >= 2021.7
+%endif
 # python-pandas-gbq is not currently packaged:
 # BuildRequires:  python3dist(pandas-gbq) >= 0.15
 # Recommends:     python3dist(pandas-gbq) >= 0.15
@@ -610,6 +614,7 @@ k="${k-}${k+ and }not (TestParquetPyArrow and test_pyarrow_backed_string_array[p
 k="${k-}${k+ and }not (TestParquetPyArrow and test_pyarrow_backed_string_array[pyarrow])"
 k="${k-}${k+ and }not (TestParquetPyArrow and test_additional_extension_types)"
 k="${k-}${k+ and }not (TestParquetPyArrow and test_timezone_aware_index[timezone_aware_date_list0])"
+k="${k-}${k+ and }not test_to_read_gcs[parquet]"
 
 # Similarly, there are a cluster of similar stata test failures for which the
 # root cause is not immediately obvious.
@@ -678,8 +683,9 @@ export PYTHONHASHSEED="$(
 
 
 %changelog
-* Sat Nov 26 2022 Benjamin A. Beasley <code@musicinmybrain.net> - 1.5.2-1
+* Sun Dec 04 2022 Benjamin A. Beasley <code@musicinmybrain.net> - 1.5.2-1
 - Update to 1.5.2
+- Re-enable python-gcsfs BR/weak-dep. on F38 and later
 
 * Wed Nov 23 2022 Benjamin A. Beasley <code@musicinmybrain.net> - 1.5.1-2
 - Update license breakdown and convert to SPDX
