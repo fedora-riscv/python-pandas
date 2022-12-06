@@ -488,6 +488,11 @@ m="${m-}${m+ and }not clipboard"
 m="${m-}${m+ and }not single"
 %endif
 
+# This test allocates a huge amount of memory (~12GB), which causes flaky OOM
+# failures on some builders. It’s not worth it.
+# https://github.com/pandas-dev/pandas/issues/45223#issuecomment-1250912663
+k="${k-}${k+ and }not test_bytes_exceed_2gb"
+
 %ifarch ppc64le s390x
 # TODO: Why does this fail?
 # >       with pytest.raises(TypeError, match=msg):
@@ -591,6 +596,8 @@ k="${k-}${k+ and }not (TestDateRanges and test_date_range_int64_overflow_stride_
 # E         - {'a': 1}
 # E         + {}
 k="${k-}${k+ and }not test_binops[sub-args4-right]"
+# Flaky:
+k="${k-}${k+ and }not test_binops[add-args4-right]"
 %endif
 
 %ifarch s390x
@@ -727,6 +734,7 @@ export PYTHONHASHSEED="$(
 - Allow a slightly older numpy version for F37
 - Skip a test that sometimes hangs on aarch64 and ppc64le
 - Additional test skips for F37
+- Skip a couple of tests that cause flaky failures
 
 * Wed Nov 23 2022 Benjamin A. Beasley <code@musicinmybrain.net> - 1.5.1-2
 - Update license breakdown and convert to SPDX
