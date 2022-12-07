@@ -493,27 +493,6 @@ m="${m-}${m+ and }not single"
 # https://github.com/pandas-dev/pandas/issues/45223#issuecomment-1250912663
 k="${k-}${k+ and }not test_bytes_exceed_2gb"
 
-%ifarch ppc64le s390x
-# TODO: Why does this fail?
-# >       with pytest.raises(TypeError, match=msg):
-# E       Failed: DID NOT RAISE <class 'TypeError'>
-k="${k-}${k+ and }not (TestFloatSubtype and test_subtype_integer_errors)"
-%endif
-
-%ifarch %{arm64}
-# TODO: Why does this fail?
-# >           with pytest.raises(ValueError, match="external reference.*"):
-# E           Failed: DID NOT RAISE <class 'ValueError'>
-k="${k-}${k+ and }not (TestHashTable and test_vector_resize[True-UInt64HashTable-UInt64Vector-uint64-False-10])"
-%endif
-
-%ifarch ppc64le
-# TODO: Why does this fail?
-# >           with pytest.raises(ValueError, match="external reference.*"):
-# E           Failed: DID NOT RAISE <class 'ValueError'>
-k="${k-}${k+ and }not (TestHashTable and test_vector_resize[False-UInt64HashTable-UInt64Vector-uint64-False-10])"
-%endif
-
 # This test (only) expects the current working directory to be the
 # site-packages directory containing the built pandas. This is not how we run
 # the tests, because we don’t want to clutter the buildroot with
@@ -521,18 +500,6 @@ k="${k-}${k+ and }not (TestHashTable and test_vector_resize[False-UInt64HashTabl
 # %%pyproject_build_lib if this were a problem for a lot of tests, but it’s
 # easier just to skip it.
 k="${k-}${k+ and }not test_html_template_extends_options"
-
-# TODO: Why does this fail? This also seems to have to do with fsspec.
-k="${k-}${k+ and }not test_markdown_options"
-
-# TODO: Why does this fail?
-# >           assert res_deep == res == expected
-# E           assert 0 == 108
-k="${k-}${k+ and }not test_memory_usage[series-with-empty-index]"
-
-# TODO: Why does this fail? An fsspec.implementations.memory.MemoryFile does
-# not seem to work as expected.
-k="${k-}${k+ and }not test_read_csv"
 
 %ifarch ppc64le s390x
 # TODO: Why does this fail? The differences are large!
@@ -551,10 +518,6 @@ k="${k-}${k+ and }not test_bytes_exceed_2gb[c_high]"
 # Fails for both [c_high] and [c_low].
 k="${k-}${k+ and }not test_float_precision_options"
 
-# E   AssertionError: DataFrame.iloc[:, 2] (column name="C") are different
-# E
-# E   DataFrame.iloc[:, 2] (column name="C") values are different (11.57513 %)
-k="${k-}${k+ and }not (TestMerge and test_int64_overflow_issues)"
 # E   AssertionError: DataFrame.iloc[:, 2] (column name="C") are different
 # E
 # E   DataFrame.iloc[:, 2] (column name="C") values are different (11.66363 %)
@@ -735,6 +698,7 @@ export PYTHONHASHSEED="$(
 - Skip a test that sometimes hangs on aarch64 and ppc64le
 - Additional test skips for F37
 - Skip a couple of tests that cause flaky failures
+- Drop some test skips that are no longer needed
 
 * Wed Nov 23 2022 Benjamin A. Beasley <code@musicinmybrain.net> - 1.5.1-2
 - Update license breakdown and convert to SPDX
