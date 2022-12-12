@@ -550,17 +550,6 @@ k="${k-}${k+ and }not (TestWeek and test_apply_out_of_range)"
 # E
 # E       Index length are different
 k="${k-}${k+ and }not (TestDateRanges and test_date_range_int64_overflow_stride_endpoint_different_signs)"
-
-# New in 1.5.2:
-# E       AssertionError: assert {} == {'a': 1}
-# E         Right contains 1 more item:
-# E         {'a': 1}
-# E         Full diff:
-# E         - {'a': 1}
-# E         + {}
-k="${k-}${k+ and }not test_binops[sub-args4-right]"
-# Flaky:
-k="${k-}${k+ and }not test_binops[add-args4-right]"
 %endif
 
 %ifarch s390x
@@ -609,27 +598,12 @@ k="${k-}${k+ and }not (TestStata and test_utf8_writer)"
 k="${k-}${k+ and }not test_arrow_array"
 %endif
 
-%ifarch aarch64 ppc64le
-# TODO: Why do some of the parametrizations of this test sometimes hang?
-k="${k-}${k+ and }not test_resample_empty_series"
-%endif
-
 %if 0%{?fc37}
 # TODO: Why do these fail on F37 but not on F38?
 
 # E       AssertionError: Did not use numexpr as expected.
 # E       assert []
 k="${k-}${k+ and }not (TestExpressions and test_run_binary)"
-
-%ifarch ppc64le aarch64
-# E       AssertionError: assert {} == {'a': 1}
-# E         Right contains 1 more item:
-# E         {'a': 1}
-# E         Full diff:
-# E         - {'a': 1}
-# E         + {}
-k="${k-}${k+ and }not test_binops[pow-args0-right]"
-%endif
 %endif
 
 # Ensure pytest doesn’t find the “un-built” library. We can get away with this
@@ -647,10 +621,15 @@ export PYTHONHASHSEED="$(
   %{python3} -c 'import random; print(random.randint(1, 4294967295))'
 )"
 
-%if 0%{?__isa_bits} == 32
-# Limit parallelism in tests to prevent memory exhaustion
-%constrain_build -c 8
-%endif
+# Previously, we ran tests in parallel. Upstream seems to support this;
+# however, in practice, there were still some flaky test failures that seem to
+# be fixed by eschewing parallelism.
+#
+# If we start running tests in parallel again in the future, note that on
+# 32-bit platforms (%%if 0%%{?__isa_bits} == 32) it may be necessary to limit
+# the number of concurrent tests to e.g. 8 in order to prevent memory
+# exhaustion.
+%constrain_build -c 1
 
 %pytest -v '%{buildroot}%{python3_sitearch}/pandas' \
     %{?!with_slow_tests:--skip-slow} \
@@ -697,8 +676,8 @@ export PYTHONHASHSEED="$(
 - Allow a slightly older numpy version for F37
 - Skip a test that sometimes hangs on aarch64 and ppc64le
 - Additional test skips for F37
-- Skip a couple of tests that cause flaky failures
 - Drop some test skips that are no longer needed
+- Fix several flaky test failures by no longer running tests in parallel
 
 * Wed Nov 23 2022 Benjamin A. Beasley <code@musicinmybrain.net> - 1.5.1-2
 - Update license breakdown and convert to SPDX
