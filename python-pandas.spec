@@ -13,7 +13,7 @@
 
 Name:           python-pandas
 Version:        1.5.3
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Python library providing high-performance data analysis tools
 
 # The entire source is BSD-3-Clause and covered by LICENSE, except:
@@ -362,10 +362,8 @@ Recommends:     python3dist(zstandard) >= 0.15.2
 
 # This is just an “ecosystem” package in the upstream documentation, but there
 # is an integration test for it. This package historically had a weak
-# dependency on it, which we keep around until we package 1.4.0 to ensure
-# backward compatibility.
+# dependency on it, but this was unnecessary.
 BuildRequires:  python3dist(pandas-datareader)
-Recommends:     python3dist(pandas-datareader)
 
 %endif
 
@@ -717,6 +715,9 @@ export PYTHONHASHSEED="$(
 
 
 %changelog
+* Wed Apr 19 2023 Benjamin A. Beasley <code@musicinmybrain.net> - 1.5.3-3
+- Drop unnecessary weak dependency on python-pandas-datareader
+
 * Thu Apr 13 2023 Benjamin A. Beasley <code@musicinmybrain.net> - 1.5.3-2
 - Fix RHBZ#2171682 by backporting upstream PR#52150
 
