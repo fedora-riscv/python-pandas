@@ -1,0 +1,335 @@
+From 43d4450e7e7386eb3aebb286b6101889c32ba52c Mon Sep 17 00:00:00 2001
+From: Patrick Hoefler <61934744+phofl@users.noreply.github.com>
+Date: Sat, 24 Dec 2022 20:49:35 +0100
+Subject: [PATCH 1/3] CI: Unpin pyarrow<10 (#50314)
+
+* CI: Unpin pyarrow<10
+
+* Skip test
+---
+ .github/actions/setup-conda/action.yml          | 2 +-
+ .github/workflows/ubuntu.yml                    | 2 +-
+ ci/deps/actions-310.yaml                        | 2 +-
+ ci/deps/actions-38-downstream_compat.yaml       | 2 +-
+ ci/deps/actions-38.yaml                         | 2 +-
+ ci/deps/actions-39.yaml                         | 2 +-
+ ci/deps/circle-38-arm64.yaml                    | 2 +-
+ environment.yml                                 | 2 +-
+ pandas/compat/pyarrow.py                        | 2 ++
+ pandas/tests/arrays/interval/test_interval.py   | 2 +-
+ pandas/tests/arrays/period/test_arrow_compat.py | 3 +++
+ requirements-dev.txt                            | 2 +-
+ 12 files changed, 15 insertions(+), 10 deletions(-)
+
+diff --git a/.github/actions/setup-conda/action.yml b/.github/actions/setup-conda/action.yml
+index 7d1e54052f..002d0020c2 100644
+--- a/.github/actions/setup-conda/action.yml
++++ b/.github/actions/setup-conda/action.yml
+@@ -18,7 +18,7 @@ runs:
+     - name: Set Arrow version in ${{ inputs.environment-file }} to ${{ inputs.pyarrow-version }}
+       run: |
+         grep -q '  - pyarrow' ${{ inputs.environment-file }}
+-        sed -i"" -e "s/  - pyarrow<10/  - pyarrow=${{ inputs.pyarrow-version }}/" ${{ inputs.environment-file }}
++        sed -i"" -e "s/  - pyarrow/  - pyarrow=${{ inputs.pyarrow-version }}/" ${{ inputs.environment-file }}
+         cat ${{ inputs.environment-file }}
+       shell: bash
+       if: ${{ inputs.pyarrow-version }}
+diff --git a/.github/workflows/ubuntu.yml b/.github/workflows/ubuntu.yml
+index 4602d12d85..8fd69a4851 100644
+--- a/.github/workflows/ubuntu.yml
++++ b/.github/workflows/ubuntu.yml
+@@ -31,7 +31,7 @@ jobs:
+         pattern: ["not single_cpu", "single_cpu"]
+         # Don't test pyarrow v2/3: Causes timeouts in read_csv engine
+         # even if tests are skipped/xfailed
+-        pyarrow_version: ["5", "6", "7"]
++        pyarrow_version: ["5", "6", "7", "8", "9", "10"]
+         include:
+           - name: "Downstream Compat"
+             env_file: actions-38-downstream_compat.yaml
+diff --git a/ci/deps/actions-310.yaml b/ci/deps/actions-310.yaml
+index deb23d435b..6050a28e11 100644
+--- a/ci/deps/actions-310.yaml
++++ b/ci/deps/actions-310.yaml
+@@ -39,7 +39,7 @@ dependencies:
+   - psycopg2
+   - pymysql
+   - pytables
+-  - pyarrow<10
++  - pyarrow
+   - pyreadstat
+   - python-snappy
+   - pyxlsb
+diff --git a/ci/deps/actions-38-downstream_compat.yaml b/ci/deps/actions-38-downstream_compat.yaml
+index 06ffafeb70..988eacdd0c 100644
+--- a/ci/deps/actions-38-downstream_compat.yaml
++++ b/ci/deps/actions-38-downstream_compat.yaml
+@@ -38,7 +38,7 @@ dependencies:
+   - odfpy
+   - pandas-gbq
+   - psycopg2
+-  - pyarrow<10
++  - pyarrow
+   - pymysql
+   - pyreadstat
+   - pytables
+diff --git a/ci/deps/actions-38.yaml b/ci/deps/actions-38.yaml
+index 222da40ea9..131e2d1882 100644
+--- a/ci/deps/actions-38.yaml
++++ b/ci/deps/actions-38.yaml
+@@ -37,7 +37,7 @@ dependencies:
+   - odfpy
+   - pandas-gbq
+   - psycopg2
+-  - pyarrow<10
++  - pyarrow
+   - pymysql
+   - pyreadstat
+   - pytables
+diff --git a/ci/deps/actions-39.yaml b/ci/deps/actions-39.yaml
+index 1c60e8ad6d..62e7397757 100644
+--- a/ci/deps/actions-39.yaml
++++ b/ci/deps/actions-39.yaml
+@@ -38,7 +38,7 @@ dependencies:
+   - pandas-gbq
+   - psycopg2
+   - pymysql
+-  - pyarrow<10
++  - pyarrow
+   - pyreadstat
+   - pytables
+   - python-snappy
+diff --git a/ci/deps/circle-38-arm64.yaml b/ci/deps/circle-38-arm64.yaml
+index 263521fb74..512c47f0a6 100644
+--- a/ci/deps/circle-38-arm64.yaml
++++ b/ci/deps/circle-38-arm64.yaml
+@@ -37,7 +37,7 @@ dependencies:
+   - odfpy
+   - pandas-gbq
+   - psycopg2
+-  - pyarrow<10
++  - pyarrow
+   - pymysql
+   # Not provided on ARM
+   #- pyreadstat
+diff --git a/environment.yml b/environment.yml
+index 20f839db9a..1620bad9b0 100644
+--- a/environment.yml
++++ b/environment.yml
+@@ -38,7 +38,7 @@ dependencies:
+   - odfpy
+   - pandas-gbq
+   - psycopg2
+-  - pyarrow<10
++  - pyarrow
+   - pymysql
+   - pyreadstat
+   - pytables
+diff --git a/pandas/compat/pyarrow.py b/pandas/compat/pyarrow.py
+index 6965865acb..887ae49c3d 100644
+--- a/pandas/compat/pyarrow.py
++++ b/pandas/compat/pyarrow.py
+@@ -18,6 +18,7 @@ try:
+     pa_version_under7p0 = _palv < Version("7.0.0")
+     pa_version_under8p0 = _palv < Version("8.0.0")
+     pa_version_under9p0 = _palv < Version("9.0.0")
++    pa_version_under10p0 = _palv < Version("10.0.0")
+ except ImportError:
+     pa_version_under1p01 = True
+     pa_version_under2p0 = True
+@@ -28,3 +29,4 @@ except ImportError:
+     pa_version_under7p0 = True
+     pa_version_under8p0 = True
+     pa_version_under9p0 = True
++    pa_version_under10p0 = True
+diff --git a/pandas/tests/arrays/interval/test_interval.py b/pandas/tests/arrays/interval/test_interval.py
+index 2a6bea3255..0667082784 100644
+--- a/pandas/tests/arrays/interval/test_interval.py
++++ b/pandas/tests/arrays/interval/test_interval.py
+@@ -287,7 +287,7 @@ def test_arrow_array():
+     with pytest.raises(TypeError, match="Not supported to convert IntervalArray"):
+         pa.array(intervals, type="float64")
+ 
+-    with pytest.raises(TypeError, match="different 'subtype'"):
++    with pytest.raises(TypeError, match="different 'subtype'|to convert IntervalArray"):
+         pa.array(intervals, type=ArrowIntervalType(pa.float64(), "left"))
+ 
+ 
+diff --git a/pandas/tests/arrays/period/test_arrow_compat.py b/pandas/tests/arrays/period/test_arrow_compat.py
+index 03fd146572..01a97d07a7 100644
+--- a/pandas/tests/arrays/period/test_arrow_compat.py
++++ b/pandas/tests/arrays/period/test_arrow_compat.py
+@@ -1,5 +1,7 @@
+ import pytest
+ 
++from pandas.compat.pyarrow import pa_version_under10p0
++
+ from pandas.core.dtypes.dtypes import PeriodDtype
+ 
+ import pandas as pd
+@@ -26,6 +28,7 @@ def test_arrow_extension_type():
+     assert not hash(p1) == hash(p3)
+ 
+ 
++@pytest.mark.xfail(not pa_version_under10p0, reason="Wrong behavior with pyarrow 10")
+ @pytest.mark.parametrize(
+     "data, freq",
+     [
+diff --git a/requirements-dev.txt b/requirements-dev.txt
+index 95291e4ab5..1c7a011e5f 100644
+--- a/requirements-dev.txt
++++ b/requirements-dev.txt
+@@ -29,7 +29,7 @@ openpyxl
+ odfpy
+ pandas-gbq
+ psycopg2
+-pyarrow<10
++pyarrow
+ pymysql
+ pyreadstat
+ tables
+-- 
+2.39.2
+
+
+From 5c2ced8f67fb248d6e5166b5dfdb03909de3123b Mon Sep 17 00:00:00 2001
+From: "Benjamin A. Beasley" <code@musicinmybrain.net>
+Date: Wed, 19 Apr 2023 11:36:21 -0400
+Subject: [PATCH 2/3] Add pandas.compat.pa_version_under11p0
+
+Partial backport of #50998 / 52306d9
+---
+ pandas/compat/__init__.py | 2 ++
+ pandas/compat/pyarrow.py  | 2 ++
+ 2 files changed, 4 insertions(+)
+
+diff --git a/pandas/compat/__init__.py b/pandas/compat/__init__.py
+index 80f66c945b..68f2495d0d 100644
+--- a/pandas/compat/__init__.py
++++ b/pandas/compat/__init__.py
+@@ -29,6 +29,7 @@ from pandas.compat.pyarrow import (
+     pa_version_under7p0,
+     pa_version_under8p0,
+     pa_version_under9p0,
++    pa_version_under11p0,
+ )
+ 
+ if TYPE_CHECKING:
+@@ -163,4 +164,5 @@ __all__ = [
+     "pa_version_under7p0",
+     "pa_version_under8p0",
+     "pa_version_under9p0",
++    "pa_version_under11p0",
+ ]
+diff --git a/pandas/compat/pyarrow.py b/pandas/compat/pyarrow.py
+index 887ae49c3d..ca51d74828 100644
+--- a/pandas/compat/pyarrow.py
++++ b/pandas/compat/pyarrow.py
+@@ -19,6 +19,7 @@ try:
+     pa_version_under8p0 = _palv < Version("8.0.0")
+     pa_version_under9p0 = _palv < Version("9.0.0")
+     pa_version_under10p0 = _palv < Version("10.0.0")
++    pa_version_under11p0 = _palv < Version("11.0.0")
+ except ImportError:
+     pa_version_under1p01 = True
+     pa_version_under2p0 = True
+@@ -30,3 +31,4 @@ except ImportError:
+     pa_version_under8p0 = True
+     pa_version_under9p0 = True
+     pa_version_under10p0 = True
++    pa_version_under11p0 = True
+-- 
+2.39.2
+
+
+From 8549bbe4e1144e2429612fa17e082ab9c1cba23f Mon Sep 17 00:00:00 2001
+From: Luke Manley <lukemanley@gmail.com>
+Date: Fri, 10 Feb 2023 13:15:08 -0500
+Subject: [PATCH 3/3] CI: unpin pyarrow, fix failing test (#51175)
+
+* unpin pyarrow, fix failing test
+
+* cleanup
+
+* handle NaT/NaN
+---
+ pandas/core/arrays/arrow/array.py    | 12 ++++++++++++
+ pandas/core/tools/timedeltas.py      |  4 +++-
+ pandas/tests/extension/test_arrow.py | 12 +++++++++++-
+ 3 files changed, 26 insertions(+), 2 deletions(-)
+
+diff --git a/pandas/core/arrays/arrow/array.py b/pandas/core/arrays/arrow/array.py
+index 4dfd8942c2..7031f4d80d 100644
+--- a/pandas/core/arrays/arrow/array.py
++++ b/pandas/core/arrays/arrow/array.py
+@@ -259,6 +259,18 @@ class ArrowExtensionArray(OpsMixin, ExtensionArray):
+             from pandas.core.tools.timedeltas import to_timedelta
+ 
+             scalars = to_timedelta(strings, errors="raise")
++            if pa_type.unit != "ns":
++                # GH51175: test_from_sequence_of_strings_pa_array
++                # attempt to parse as int64 reflecting pyarrow's
++                # duration to string casting behavior
++                mask = isna(scalars)
++                if not isinstance(strings, (pa.Array, pa.ChunkedArray)):
++                    strings = pa.array(strings, type=pa.string(), from_pandas=True)
++                strings = pc.if_else(mask, None, strings)
++                try:
++                    scalars = strings.cast(pa.int64())
++                except pa.ArrowInvalid:
++                    pass
+         elif pa.types.is_time(pa_type):
+             from pandas.core.tools.times import to_time
+ 
+diff --git a/pandas/core/tools/timedeltas.py b/pandas/core/tools/timedeltas.py
+index 5026c97c0b..67ba7818d1 100644
+--- a/pandas/core/tools/timedeltas.py
++++ b/pandas/core/tools/timedeltas.py
+@@ -236,7 +236,9 @@ def _convert_listlike(arg, unit=None, errors="raise", name=None):
+         #  returning arg (errors == "ignore"), and where the input is a
+         #  generator, we return a useful list-like instead of a
+         #  used-up generator
+-        arg = np.array(list(arg), dtype=object)
++        if not hasattr(arg, "__array__"):
++            arg = list(arg)
++        arg = np.array(arg, dtype=object)
+ 
+     try:
+         td64arr = sequence_to_td64ns(arg, unit=unit, errors=errors, copy=False)[0]
+diff --git a/pandas/tests/extension/test_arrow.py b/pandas/tests/extension/test_arrow.py
+index b7ddb1f248..689bd29dfd 100644
+--- a/pandas/tests/extension/test_arrow.py
++++ b/pandas/tests/extension/test_arrow.py
+@@ -30,6 +30,7 @@ from pandas.compat import (
+     pa_version_under7p0,
+     pa_version_under8p0,
+     pa_version_under9p0,
++    pa_version_under11p0,
+ )
+ from pandas.errors import PerformanceWarning
+ 
+@@ -272,7 +273,7 @@ class TestConstructors(base.BaseConstructorsTests):
+                     reason="Nanosecond time parsing not supported.",
+                 )
+             )
+-        elif pa.types.is_duration(pa_dtype):
++        elif pa_version_under11p0 and pa.types.is_duration(pa_dtype):
+             request.node.add_marker(
+                 pytest.mark.xfail(
+                     raises=pa.ArrowNotImplementedError,
+@@ -1707,3 +1708,12 @@ def test_mode(data_for_grouping, dropna, take_idx, exp_idx, request):
+     result = ser.mode(dropna=dropna)
+     expected = pd.Series(data_for_grouping.take(exp_idx))
+     tm.assert_series_equal(result, expected)
++
++@pytest.mark.parametrize("unit", ["ns", "us", "ms", "s"])
++def test_duration_from_strings_with_nat(unit):
++    # GH51175
++    strings = ["1000", "NaT"]
++    pa_type = pa.duration(unit)
++    result = ArrowExtensionArray._from_sequence_of_strings(strings, dtype=pa_type)
++    expected = ArrowExtensionArray(pa.array([1000, None], type=pa_type))
++    tm.assert_extension_array_equal(result, expected)
+-- 
+2.39.2
+
