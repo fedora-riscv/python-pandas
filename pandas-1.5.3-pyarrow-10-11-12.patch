@@ -1,7 +1,7 @@
 From 43d4450e7e7386eb3aebb286b6101889c32ba52c Mon Sep 17 00:00:00 2001
 From: Patrick Hoefler <61934744+phofl@users.noreply.github.com>
 Date: Sat, 24 Dec 2022 20:49:35 +0100
-Subject: [PATCH 1/3] CI: Unpin pyarrow<10 (#50314)
+Subject: [PATCH 1/4] CI: Unpin pyarrow<10 (#50314)
 
 * CI: Unpin pyarrow<10
 
@@ -189,13 +189,13 @@ index 95291e4ab5..1c7a011e5f 100644
  pyreadstat
  tables
 -- 
-2.39.2
+2.40.1
 
 
 From 5c2ced8f67fb248d6e5166b5dfdb03909de3123b Mon Sep 17 00:00:00 2001
 From: "Benjamin A. Beasley" <code@musicinmybrain.net>
 Date: Wed, 19 Apr 2023 11:36:21 -0400
-Subject: [PATCH 2/3] Add pandas.compat.pa_version_under11p0
+Subject: [PATCH 2/4] Add pandas.compat.pa_version_under11p0
 
 Partial backport of #50998 / 52306d9
 ---
@@ -239,13 +239,13 @@ index 887ae49c3d..ca51d74828 100644
      pa_version_under10p0 = True
 +    pa_version_under11p0 = True
 -- 
-2.39.2
+2.40.1
 
 
 From 8549bbe4e1144e2429612fa17e082ab9c1cba23f Mon Sep 17 00:00:00 2001
 From: Luke Manley <lukemanley@gmail.com>
 Date: Fri, 10 Feb 2023 13:15:08 -0500
-Subject: [PATCH 3/3] CI: unpin pyarrow, fix failing test (#51175)
+Subject: [PATCH 3/4] CI: unpin pyarrow, fix failing test (#51175)
 
 * unpin pyarrow, fix failing test
 
@@ -331,5 +331,337 @@ index b7ddb1f248..689bd29dfd 100644
 +    expected = ArrowExtensionArray(pa.array([1000, None], type=pa_type))
 +    tm.assert_extension_array_equal(result, expected)
 -- 
-2.39.2
+2.40.1
+
+
+From 0d8f9e00c2748bacb1dbf6d435b2d85dc1a63018 Mon Sep 17 00:00:00 2001
+From: Matthew Roeschke <10647082+mroeschke@users.noreply.github.com>
+Date: Thu, 30 Mar 2023 16:52:35 -0700
+Subject: [PATCH 4/4] CI: Test pyarrow nightly instead of intermediate versions
+ (#52211)
+
+* CI: Test pyarrow nightly instead of intermediate versions
+
+* Change format
+
+* Pin, remove hardcoded channel
+
+* Try pip
+
+* Fix some tests
+
+* Address more tests
+
+* Fix test condition
+
+* Fix another condidition
+
+* Cleanup name
+
+* Remove boto3
+---
+ .github/actions/setup-conda/action.yml     | 11 --------
+ .github/workflows/macos-windows.yml        |  1 -
+ .github/workflows/ubuntu.yml               | 20 ++++-----------
+ ci/deps/actions-310.yaml                   |  2 +-
+ ci/deps/actions-311-pyarrownightly.yaml    | 29 ++++++++++++++++++++++
+ ci/deps/actions-38-downstream_compat.yaml  |  2 +-
+ ci/deps/actions-38.yaml                    |  2 +-
+ ci/deps/actions-39.yaml                    |  2 +-
+ ci/deps/circle-38-arm64.yaml               |  2 +-
+ environment.yml                            |  2 +-
+ pandas/io/parquet.py                       | 15 +++++++++++
+ pandas/tests/arrays/string_/test_string.py |  6 ++---
+ pandas/tests/util/test_show_versions.py    |  2 +-
+ requirements-dev.txt                       |  2 +-
+ 14 files changed, 60 insertions(+), 38 deletions(-)
+ create mode 100644 ci/deps/actions-311-pyarrownightly.yaml
+
+diff --git a/.github/actions/setup-conda/action.yml b/.github/actions/setup-conda/action.yml
+index 002d0020c2..b667075e87 100644
+--- a/.github/actions/setup-conda/action.yml
++++ b/.github/actions/setup-conda/action.yml
+@@ -9,20 +9,9 @@ inputs:
+   extra-specs:
+     description: Extra packages to install
+     required: false
+-  pyarrow-version:
+-    description: If set, overrides the PyArrow version in the Conda environment to the given string.
+-    required: false
+ runs:
+   using: composite
+   steps:
+-    - name: Set Arrow version in ${{ inputs.environment-file }} to ${{ inputs.pyarrow-version }}
+-      run: |
+-        grep -q '  - pyarrow' ${{ inputs.environment-file }}
+-        sed -i"" -e "s/  - pyarrow/  - pyarrow=${{ inputs.pyarrow-version }}/" ${{ inputs.environment-file }}
+-        cat ${{ inputs.environment-file }}
+-      shell: bash
+-      if: ${{ inputs.pyarrow-version }}
+-
+     - name: Install ${{ inputs.environment-file }}
+       uses: mamba-org/provision-with-micromamba@v12
+       with:
+diff --git a/.github/workflows/macos-windows.yml b/.github/workflows/macos-windows.yml
+index 5da2d0d281..cf0220c1a4 100644
+--- a/.github/workflows/macos-windows.yml
++++ b/.github/workflows/macos-windows.yml
+@@ -52,7 +52,6 @@ jobs:
+       uses: ./.github/actions/setup-conda
+       with:
+         environment-file: ci/deps/${{ matrix.env_file }}
+-        pyarrow-version: ${{ matrix.os == 'macos-latest' && '6' || '' }}
+ 
+     - name: Build Pandas
+       uses: ./.github/actions/build_pandas
+diff --git a/.github/workflows/ubuntu.yml b/.github/workflows/ubuntu.yml
+index 8fd69a4851..efa7215760 100644
+--- a/.github/workflows/ubuntu.yml
++++ b/.github/workflows/ubuntu.yml
+@@ -29,9 +29,6 @@ jobs:
+       matrix:
+         env_file: [actions-38.yaml, actions-39.yaml, actions-310.yaml]
+         pattern: ["not single_cpu", "single_cpu"]
+-        # Don't test pyarrow v2/3: Causes timeouts in read_csv engine
+-        # even if tests are skipped/xfailed
+-        pyarrow_version: ["5", "6", "7", "8", "9", "10"]
+         include:
+           - name: "Downstream Compat"
+             env_file: actions-38-downstream_compat.yaml
+@@ -69,17 +66,11 @@ jobs:
+             pattern: "not slow and not network and not single_cpu"
+             pandas_testing_mode: "deprecate"
+             test_args: "-W error::DeprecationWarning:numpy -W error::FutureWarning:numpy"
+-        exclude:
+-          - env_file: actions-39.yaml
+-            pyarrow_version: "6"
+-          - env_file: actions-39.yaml
+-            pyarrow_version: "7"
+-          - env_file: actions-310.yaml
+-            pyarrow_version: "6"
+-          - env_file: actions-310.yaml
+-            pyarrow_version: "7"
++          - name: "Pyarrow Nightly"
++            env_file: actions-311-pyarrownightly.yaml
++            pattern: "not slow and not network and not single_cpu"
+       fail-fast: false
+-    name: ${{ matrix.name || format('{0} pyarrow={1} {2}', matrix.env_file, matrix.pyarrow_version, matrix.pattern) }}
++    name: ${{ matrix.name || matrix.env_file }}
+     env:
+       ENV_FILE: ci/deps/${{ matrix.env_file }}
+       PATTERN: ${{ matrix.pattern }}
+@@ -97,7 +88,7 @@ jobs:
+       COVERAGE: ${{ !contains(matrix.env_file, 'pypy') }}
+     concurrency:
+       # https://github.community/t/concurrecy-not-work-for-push/183068/7
+-      group: ${{ github.event_name == 'push' && github.run_number || github.ref }}-${{ matrix.env_file }}-${{ matrix.pattern }}-${{ matrix.pyarrow_version || '' }}-${{ matrix.extra_apt || '' }}-${{ matrix.pandas_data_manager || '' }}
++      group: ${{ github.event_name == 'push' && github.run_number || github.ref }}-${{ matrix.env_file }}-${{ matrix.pattern }}-${{ matrix.extra_apt || '' }}-${{ matrix.pandas_data_manager || '' }}
+       cancel-in-progress: true
+ 
+     services:
+@@ -150,7 +141,6 @@ jobs:
+       uses: ./.github/actions/setup-conda
+       with:
+         environment-file: ${{ env.ENV_FILE }}
+-        pyarrow-version: ${{ matrix.pyarrow_version }}
+ 
+     - name: Build Pandas
+       uses: ./.github/actions/build_pandas
+diff --git a/ci/deps/actions-310.yaml b/ci/deps/actions-310.yaml
+index 6050a28e11..aae1b2f46b 100644
+--- a/ci/deps/actions-310.yaml
++++ b/ci/deps/actions-310.yaml
+@@ -39,7 +39,7 @@ dependencies:
+   - psycopg2
+   - pymysql
+   - pytables
+-  - pyarrow
++  - pyarrow>=7.0.0
+   - pyreadstat
+   - python-snappy
+   - pyxlsb
+diff --git a/ci/deps/actions-311-pyarrownightly.yaml b/ci/deps/actions-311-pyarrownightly.yaml
+new file mode 100644
+index 0000000000..77e4fc9d2c
+--- /dev/null
++++ b/ci/deps/actions-311-pyarrownightly.yaml
+@@ -0,0 +1,29 @@
++name: pandas-dev
++channels:
++  - conda-forge
++dependencies:
++  - python=3.11
++
++  # build dependencies
++  - versioneer[toml]
++  - cython>=0.29.33
++
++  # test dependencies
++  - pytest>=7.0.0
++  - pytest-cov
++  - pytest-xdist>=2.2.0
++  - hypothesis>=6.34.2
++  - pytest-asyncio>=0.17.0
++
++  # required dependencies
++  - python-dateutil
++  - numpy
++  - pytz
++  - pip
++
++  - pip:
++    - "tzdata>=2022.1"
++    - "--extra-index-url https://pypi.fury.io/arrow-nightlies/"
++    - "--prefer-binary"
++    - "--pre"
++    - "pyarrow"
+diff --git a/ci/deps/actions-38-downstream_compat.yaml b/ci/deps/actions-38-downstream_compat.yaml
+index 988eacdd0c..10b5c0a437 100644
+--- a/ci/deps/actions-38-downstream_compat.yaml
++++ b/ci/deps/actions-38-downstream_compat.yaml
+@@ -38,7 +38,7 @@ dependencies:
+   - odfpy
+   - pandas-gbq
+   - psycopg2
+-  - pyarrow
++  - pyarrow>=7.0.0
+   - pymysql
+   - pyreadstat
+   - pytables
+diff --git a/ci/deps/actions-38.yaml b/ci/deps/actions-38.yaml
+index 131e2d1882..cf95783dad 100644
+--- a/ci/deps/actions-38.yaml
++++ b/ci/deps/actions-38.yaml
+@@ -37,7 +37,7 @@ dependencies:
+   - odfpy
+   - pandas-gbq
+   - psycopg2
+-  - pyarrow
++  - pyarrow>=7.0.0
+   - pymysql
+   - pyreadstat
+   - pytables
+diff --git a/ci/deps/actions-39.yaml b/ci/deps/actions-39.yaml
+index 62e7397757..4e7f52c85c 100644
+--- a/ci/deps/actions-39.yaml
++++ b/ci/deps/actions-39.yaml
+@@ -38,7 +38,7 @@ dependencies:
+   - pandas-gbq
+   - psycopg2
+   - pymysql
+-  - pyarrow
++  - pyarrow>=7.0.0
+   - pyreadstat
+   - pytables
+   - python-snappy
+diff --git a/ci/deps/circle-38-arm64.yaml b/ci/deps/circle-38-arm64.yaml
+index 512c47f0a6..cb5b3c38e6 100644
+--- a/ci/deps/circle-38-arm64.yaml
++++ b/ci/deps/circle-38-arm64.yaml
+@@ -37,7 +37,7 @@ dependencies:
+   - odfpy
+   - pandas-gbq
+   - psycopg2
+-  - pyarrow
++  - pyarrow>=7.0.0
+   - pymysql
+   # Not provided on ARM
+   #- pyreadstat
+diff --git a/environment.yml b/environment.yml
+index 1620bad9b0..ab7d0354ff 100644
+--- a/environment.yml
++++ b/environment.yml
+@@ -38,7 +38,7 @@ dependencies:
+   - odfpy
+   - pandas-gbq
+   - psycopg2
+-  - pyarrow
++  - pyarrow>=7.0.0
+   - pymysql
+   - pyreadstat
+   - pytables
+diff --git a/pandas/io/parquet.py b/pandas/io/parquet.py
+index 6f3a7608b4..14c72dbc5f 100644
+--- a/pandas/io/parquet.py
++++ b/pandas/io/parquet.py
+@@ -78,6 +78,21 @@ def _get_path_or_handle(
+ ]:
+     """File handling for PyArrow."""
+     path_or_handle = stringify_path(path)
++    if fs is not None:
++        pa_fs = import_optional_dependency("pyarrow.fs", errors="ignore")
++        fsspec = import_optional_dependency("fsspec", errors="ignore")
++        if pa_fs is not None and isinstance(fs, pa_fs.FileSystem):
++            if storage_options:
++                raise NotImplementedError(
++                    "storage_options not supported with a pyarrow FileSystem."
++                )
++        elif fsspec is not None and isinstance(fs, fsspec.spec.AbstractFileSystem):
++            pass
++        else:
++            raise ValueError(
++                f"filesystem must be a pyarrow or fsspec FileSystem, "
++                f"not a {type(fs).__name__}"
++            )
+     if is_fsspec_url(path_or_handle) and fs is None:
+         fsspec = import_optional_dependency("fsspec")
+ 
+diff --git a/pandas/tests/arrays/string_/test_string.py b/pandas/tests/arrays/string_/test_string.py
+index 6a17a56a47..7834ab6deb 100644
+--- a/pandas/tests/arrays/string_/test_string.py
++++ b/pandas/tests/arrays/string_/test_string.py
+@@ -17,6 +17,7 @@ from pandas.core.dtypes.common import is_dtype_equal
+ import pandas as pd
+ import pandas._testing as tm
+ from pandas.core.arrays.string_arrow import ArrowStringArray
++from pandas.util.version import Version
+ 
+ 
+ @pytest.fixture
+@@ -435,15 +436,14 @@ def test_fillna_args(dtype, request):
+         arr.fillna(value=1)
+ 
+ 
+-@td.skip_if_no("pyarrow")
+ def test_arrow_array(dtype):
+     # protocol added in 0.15.0
+-    import pyarrow as pa
++    pa = pytest.importorskip("pyarrow")
+ 
+     data = pd.array(["a", "b", "c"], dtype=dtype)
+     arr = pa.array(data)
+     expected = pa.array(list(data), type=pa.string(), from_pandas=True)
+-    if dtype.storage == "pyarrow":
++    if dtype.storage == "pyarrow" and Version(pa.__version__) <= Version("11.0.0"):
+         expected = pa.chunked_array(expected)
+ 
+     assert arr.equals(expected)
+diff --git a/pandas/tests/util/test_show_versions.py b/pandas/tests/util/test_show_versions.py
+index 99c7e0a1a8..8bb1a7dc9b 100644
+--- a/pandas/tests/util/test_show_versions.py
++++ b/pandas/tests/util/test_show_versions.py
+@@ -88,7 +88,7 @@ def test_show_versions_console(capsys):
+     assert re.search(r"numpy\s*:\s[0-9]+\..*\n", result)
+ 
+     # check optional dependency
+-    assert re.search(r"pyarrow\s*:\s([0-9\.]+|None)\n", result)
++    assert re.search(r"pyarrow\s*:\s([0-9]+.*|None)\n", result)
+ 
+ 
+ def test_json_output_match(capsys, tmpdir):
+diff --git a/requirements-dev.txt b/requirements-dev.txt
+index 1c7a011e5f..b453a70725 100644
+--- a/requirements-dev.txt
++++ b/requirements-dev.txt
+@@ -29,7 +29,7 @@ openpyxl
+ odfpy
+ pandas-gbq
+ psycopg2
+-pyarrow
++pyarrow>=7.0.0
+ pymysql
+ pyreadstat
+ tables
+-- 
+2.40.1
 
