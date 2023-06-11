@@ -1,7 +1,7 @@
 # We need to break some cycles with optional dependencies for bootstrapping;
 # given that a conditional is needed, we take the opportunity to omit as many
 # optional dependencies as possible for bootstrapping.
-%bcond_with bootstrap
+%bcond_without bootstrap
 
 # When not bootstrapping, run tests?
 %bcond_without tests
@@ -709,6 +709,9 @@ export PYTHONHASHSEED="$(
 
 
 %changelog
+* Sun Jun 11 2023 Liu Yang <Yang.Liu.sn@gmail.com> - 1.5.3-1~bootstrap
+- Bootstrap for Fedora 38 riscv64 rebuild.
+
 * Mon Feb 27 2023 Benjamin A. Beasley <code@musicinmybrain.net> - 1.5.3-1
 - Update to 1.5.3 (close RHBZ#2162303)
 
