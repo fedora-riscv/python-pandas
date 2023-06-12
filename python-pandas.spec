@@ -222,6 +222,7 @@ BuildRequires:  gcc
 BuildRequires:  gcc-c++
 
 BuildRequires:  python3-devel
+BuildRequires:  python3-pyarrow
 
 # Since numpy is imported in setup.py, we need it to generate BR’s. This only
 # becomes obvious during bootstrapping, in which the many optional dependencies
