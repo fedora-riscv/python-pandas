@@ -149,6 +149,9 @@ Patch:          https://github.com/pandas-dev/pandas/pull/52150.patch
 # All commits cherry-picked to tag v1.5.3 and combined into a single patch.
 Patch:          pandas-1.5.3-pyarrow-10-11-12.patch
 
+# Fix deprecation warning with Python 3.12.
+Patch:          https://github.com/pandas-dev/pandas/pull/54188.patch
+
 %global _description %{expand:
 pandas is an open source, BSD-licensed library providing
 high-performance, easy-to-use data structures and data

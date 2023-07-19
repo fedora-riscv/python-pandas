@@ -1,0 +1,24 @@
+From f25740ff7d6dcbf4c5a3e0d03d0a3eaf2f3d72a4 Mon Sep 17 00:00:00 2001
+From: Elliott Sales de Andrade <quantum.analyst@gmail.com>
+Date: Wed, 19 Jul 2023 02:56:09 -0400
+Subject: [PATCH] Fix deprecation warning on Python 3.12
+
+`Constant.n` is now deprecated for removal in 3.14; it appears that
+`Constant.value` has existed since at least 3.9.
+---
+ pandas/core/computation/expr.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/pandas/core/computation/expr.py b/pandas/core/computation/expr.py
+index f8c8e6d87ff13..7aaafc8edab87 100644
+--- a/pandas/core/computation/expr.py
++++ b/pandas/core/computation/expr.py
+@@ -550,7 +550,7 @@ def visit_Num(self, node, **kwargs) -> Term:
+         return self.const_type(node.n, self.env)
+ 
+     def visit_Constant(self, node, **kwargs) -> Term:
+-        return self.const_type(node.n, self.env)
++        return self.const_type(node.value, self.env)
+ 
+     def visit_Str(self, node, **kwargs):
+         name = self.env.add_tmp(node.s)
